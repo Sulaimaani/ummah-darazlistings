@@ -107,6 +107,11 @@ export async function generateGallerySlides(
     .jpeg({ quality: 92 })
     .toBuffer();
 
+  if (!slide1 || slide1.length === 0) {
+    throw new Error("[Composer Error] Slide 1 (Hero) generated a 0-byte image buffer");
+  }
+  console.log(`[Composer] Slide 1 (Hero) successfully composited: ${slide1.length} bytes`);
+
   results.push({ buffer: slide1, name: "1_Hero_Main_Photo.jpg" });
 
   // =========================================================================
@@ -176,6 +181,11 @@ export async function generateGallerySlides(
     .jpeg({ quality: 92 })
     .toBuffer();
 
+  if (!slide2 || slide2.length === 0) {
+    throw new Error("[Composer Error] Slide 2 (Feature Callouts) generated a 0-byte buffer");
+  }
+  console.log(`[Composer] Slide 2 (Feature Callouts) composited: ${slide2.length} bytes`);
+
   results.push({ buffer: slide2, name: "2_Feature_Callouts.jpg" });
 
   // =========================================================================
@@ -188,7 +198,7 @@ export async function generateGallerySlides(
       
       <!-- Top Title -->
       <rect x="0" y="0" width="${CANVAS_SIZE}" height="100" fill="#1E293B"/>
-      <text x="${CANVAS_SIZE / 2}" y="62" font-family="sans-serif" font-size="36" font-weight="bold" fill="#FFFFFF" text-anchor="middle">PRODUCT DIMENSIONS &amp; SIZE</text>
+      <text x="${CANVAS_SIZE / 2}" y="62" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="36" font-weight="bold" fill="#FFFFFF" text-anchor="middle">PRODUCT DIMENSIONS &amp; SIZE</text>
 
       <!-- Height Line (Left) -->
       <line x1="180" y1="260" x2="180" y2="940" stroke="#F57224" stroke-width="4"/>
@@ -196,7 +206,7 @@ export async function generateGallerySlides(
       <line x1="160" y1="940" x2="200" y2="940" stroke="#F57224" stroke-width="4"/>
       <g transform="translate(90, 600) rotate(-90)">
         <rect width="180" height="46" rx="8" fill="#F57224"/>
-        <text x="90" y="30" font-family="sans-serif" font-size="20" font-weight="bold" fill="#FFFFFF" text-anchor="middle">${escapeXml(dimensions)}</text>
+        <text x="90" y="30" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="20" font-weight="bold" fill="#FFFFFF" text-anchor="middle">${escapeXml(dimensions)}</text>
       </g>
 
       <!-- Width Line (Bottom) -->
@@ -205,7 +215,7 @@ export async function generateGallerySlides(
       <line x1="950" y1="960" x2="950" y2="1000" stroke="#F57224" stroke-width="4"/>
       <g transform="translate(510, 1020)">
         <rect width="180" height="46" rx="8" fill="#F57224"/>
-        <text x="90" y="30" font-family="sans-serif" font-size="20" font-weight="bold" fill="#FFFFFF" text-anchor="middle">${escapeXml(dimensions)}</text>
+        <text x="90" y="30" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="20" font-weight="bold" fill="#FFFFFF" text-anchor="middle">${escapeXml(dimensions)}</text>
       </g>
     </svg>
   `;
@@ -225,6 +235,11 @@ export async function generateGallerySlides(
     .jpeg({ quality: 92 })
     .toBuffer();
 
+  if (!slide3 || slide3.length === 0) {
+    throw new Error("[Composer Error] Slide 3 (Dimensions) generated a 0-byte buffer");
+  }
+  console.log(`[Composer] Slide 3 (Dimensions) composited: ${slide3.length} bytes`);
+
   results.push({ buffer: slide3, name: "3_Dimensions_Spec.jpg" });
 
   // =========================================================================
@@ -241,7 +256,7 @@ export async function generateGallerySlides(
       
       <!-- Top Title -->
       <rect x="0" y="0" width="${CANVAS_SIZE}" height="90" fill="#F57224"/>
-      <text x="${CANVAS_SIZE / 2}" y="56" font-family="sans-serif" font-size="34" font-weight="bold" fill="#FFFFFF" text-anchor="middle">MULTI-ANGLE SHOWCASE</text>
+      <text x="${CANVAS_SIZE / 2}" y="56" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="34" font-weight="bold" fill="#FFFFFF" text-anchor="middle">MULTI-ANGLE SHOWCASE</text>
 
       <!-- Frame Cards -->
       <rect x="60" y="130" width="510" height="480" rx="16" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="2"/>
@@ -250,10 +265,10 @@ export async function generateGallerySlides(
       <rect x="630" y="650" width="510" height="480" rx="16" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="2"/>
 
       <!-- Labels -->
-      <text x="315" y="580" font-family="sans-serif" font-size="18" font-weight="bold" fill="#1E293B" text-anchor="middle">Front Overview</text>
-      <text x="885" y="580" font-family="sans-serif" font-size="18" font-weight="bold" fill="#1E293B" text-anchor="middle">Side Angle</text>
-      <text x="315" y="1100" font-family="sans-serif" font-size="18" font-weight="bold" fill="#1E293B" text-anchor="middle">Detail View</text>
-      <text x="885" y="1100" font-family="sans-serif" font-size="18" font-weight="bold" fill="#1E293B" text-anchor="middle">Compact Fit</text>
+      <text x="315" y="580" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="18" font-weight="bold" fill="#1E293B" text-anchor="middle">Front Overview</text>
+      <text x="885" y="580" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="18" font-weight="bold" fill="#1E293B" text-anchor="middle">Side Angle</text>
+      <text x="315" y="1100" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="18" font-weight="bold" fill="#1E293B" text-anchor="middle">Detail View</text>
+      <text x="885" y="1100" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="18" font-weight="bold" fill="#1E293B" text-anchor="middle">Compact Fit</text>
     </svg>
   `;
 
@@ -275,6 +290,11 @@ export async function generateGallerySlides(
     .jpeg({ quality: 92 })
     .toBuffer();
 
+  if (!slide4 || slide4.length === 0) {
+    throw new Error("[Composer Error] Slide 4 (Multi-Angle Grid) generated a 0-byte buffer");
+  }
+  console.log(`[Composer] Slide 4 (Multi-Angle Grid) composited: ${slide4.length} bytes`);
+
   results.push({ buffer: slide4, name: "4_Multi_Angle_Grid.jpg" });
 
   // =========================================================================
@@ -287,22 +307,22 @@ export async function generateGallerySlides(
       
       <!-- Header Badge -->
       <rect x="60" y="50" width="280" height="44" rx="22" fill="#F57224"/>
-      <text x="200" y="78" font-family="sans-serif" font-size="18" font-weight="bold" fill="#FFFFFF" text-anchor="middle">VERSATILE USE</text>
+      <text x="200" y="78" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="18" font-weight="bold" fill="#FFFFFF" text-anchor="middle">VERSATILE USE</text>
 
       <!-- Bottom Banner Block -->
       <rect x="0" y="850" width="${CANVAS_SIZE}" height="350" fill="#1E293B"/>
-      <text x="60" y="930" font-family="sans-serif" font-size="40" font-weight="extrabold" fill="#FFFFFF">DESIGNED FOR EVERYDAY PERFORMANCE</text>
-      <text x="60" y="980" font-family="sans-serif" font-size="22" fill="#CBD5E1">Suitable for Home, Office, Travel &amp; Heavy Duty Daily Deployment</text>
+      <text x="60" y="930" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="40" font-weight="extrabold" fill="#FFFFFF">DESIGNED FOR EVERYDAY PERFORMANCE</text>
+      <text x="60" y="980" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="22" fill="#CBD5E1">Suitable for Home, Office, Travel &amp; Heavy Duty Daily Deployment</text>
       
       <!-- Bullet row in banner -->
       <circle cx="80" cy="1050" r="10" fill="#F57224"/>
-      <text x="105" y="1056" font-family="sans-serif" font-size="18" font-weight="bold" fill="#FFFFFF">Heavy Duty Resilience</text>
+      <text x="105" y="1056" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="18" font-weight="bold" fill="#FFFFFF">Heavy Duty Resilience</text>
       
       <circle cx="420" cy="1050" r="10" fill="#F57224"/>
-      <text x="445" y="1056" font-family="sans-serif" font-size="18" font-weight="bold" fill="#FFFFFF">Easy Operation</text>
+      <text x="445" y="1056" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="18" font-weight="bold" fill="#FFFFFF">Easy Operation</text>
 
       <circle cx="740" cy="1050" r="10" fill="#F57224"/>
-      <text x="765" y="1056" font-family="sans-serif" font-size="18" font-weight="bold" fill="#FFFFFF">Universal Fit</text>
+      <text x="765" y="1056" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="18" font-weight="bold" fill="#FFFFFF">Universal Fit</text>
     </svg>
   `;
 
@@ -321,6 +341,11 @@ export async function generateGallerySlides(
     .jpeg({ quality: 92 })
     .toBuffer();
 
+  if (!slide5 || slide5.length === 0) {
+    throw new Error("[Composer Error] Slide 5 (Versatility Banner) generated a 0-byte buffer");
+  }
+  console.log(`[Composer] Slide 5 (Versatility Banner) composited: ${slide5.length} bytes`);
+
   results.push({ buffer: slide5, name: "5_Versatility_Banner.jpg" });
 
   // =========================================================================
@@ -333,7 +358,7 @@ export async function generateGallerySlides(
       
       <!-- Top Title -->
       <rect x="0" y="0" width="${CANVAS_SIZE}" height="90" fill="#1E293B"/>
-      <text x="${CANVAS_SIZE / 2}" y="56" font-family="sans-serif" font-size="34" font-weight="bold" fill="#FFFFFF" text-anchor="middle">WHY CHOOSE THIS PRODUCT?</text>
+      <text x="${CANVAS_SIZE / 2}" y="56" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="34" font-weight="bold" fill="#FFFFFF" text-anchor="middle">WHY CHOOSE THIS PRODUCT?</text>
 
       <!-- Benefits List Cards (Right side) -->
       ${benefits
@@ -343,9 +368,9 @@ export async function generateGallerySlides(
         <g transform="translate(620, ${150 + idx * 240})">
           <rect width="520" height="200" rx="16" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="2"/>
           <circle cx="45" cy="50" r="22" fill="#F57224"/>
-          <text x="45" y="58" font-family="sans-serif" font-size="20" font-weight="bold" fill="#FFFFFF" text-anchor="middle">✓</text>
-          <text x="85" y="56" font-family="sans-serif" font-size="22" font-weight="bold" fill="#1E293B">${escapeXml(truncateText(b, 26))}</text>
-          <text x="45" y="115" font-family="sans-serif" font-size="16" fill="#64748B">Tested &amp; engineered for maximum quality, safety and long-term seller satisfaction.</text>
+          <text x="45" y="58" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="20" font-weight="bold" fill="#FFFFFF" text-anchor="middle">✓</text>
+          <text x="85" y="56" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="22" font-weight="bold" fill="#1E293B">${escapeXml(truncateText(b, 26))}</text>
+          <text x="45" y="115" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="16" fill="#64748B">Tested &amp; engineered for maximum quality, safety and long-term seller satisfaction.</text>
         </g>
       `
         )
@@ -368,6 +393,11 @@ export async function generateGallerySlides(
     .jpeg({ quality: 92 })
     .toBuffer();
 
+  if (!slide6 || slide6.length === 0) {
+    throw new Error("[Composer Error] Slide 6 (Product Benefits) generated a 0-byte buffer");
+  }
+  console.log(`[Composer] Slide 6 (Product Benefits) composited: ${slide6.length} bytes`);
+
   results.push({ buffer: slide6, name: "6_Product_Benefits.jpg" });
 
   // =========================================================================
@@ -380,16 +410,16 @@ export async function generateGallerySlides(
       
       <!-- Top Title -->
       <rect x="0" y="0" width="${CANVAS_SIZE}" height="100" fill="#F57224"/>
-      <text x="${CANVAS_SIZE / 2}" y="62" font-family="sans-serif" font-size="36" font-weight="bold" fill="#FFFFFF" text-anchor="middle">WHAT IS IN THE PACKAGE?</text>
+      <text x="${CANVAS_SIZE / 2}" y="62" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="36" font-weight="bold" fill="#FFFFFF" text-anchor="middle">WHAT IS IN THE PACKAGE?</text>
 
       <!-- Package Items Overlay Box (Bottom) -->
       <rect x="60" y="860" width="1080" height="280" rx="20" fill="#1E293B"/>
-      <text x="100" y="920" font-family="sans-serif" font-size="24" font-weight="bold" fill="#F57224">Package Contents List:</text>
+      <text x="100" y="920" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="24" font-weight="bold" fill="#F57224">Package Contents List:</text>
       
-      <text x="100" y="970" font-family="sans-serif" font-size="20" fill="#FFFFFF">• 1x ${escapeXml(truncateText(productName, 35))}</text>
-      <text x="100" y="1010" font-family="sans-serif" font-size="20" fill="#FFFFFF">• 1x High-Speed Charging Cable / Accessories</text>
-      <text x="100" y="1050" font-family="sans-serif" font-size="20" fill="#FFFFFF">• 1x User Operation Manual &amp; Warranty Card</text>
-      <text x="100" y="1090" font-family="sans-serif" font-size="20" fill="#FFFFFF">• 1x Protective Safe-Dispatch Packaging Box</text>
+      <text x="100" y="970" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="20" fill="#FFFFFF">• 1x ${escapeXml(truncateText(productName, 35))}</text>
+      <text x="100" y="1010" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="20" fill="#FFFFFF">• 1x High-Speed Charging Cable / Accessories</text>
+      <text x="100" y="1050" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="20" fill="#FFFFFF">• 1x User Operation Manual &amp; Warranty Card</text>
+      <text x="100" y="1090" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="20" fill="#FFFFFF">• 1x Protective Safe-Dispatch Packaging Box</text>
     </svg>
   `;
 
@@ -408,6 +438,11 @@ export async function generateGallerySlides(
     .jpeg({ quality: 92 })
     .toBuffer();
 
+  if (!slide7 || slide7.length === 0) {
+    throw new Error("[Composer Error] Slide 7 (Package Contents) generated a 0-byte buffer");
+  }
+  console.log(`[Composer] Slide 7 (Package Contents) composited: ${slide7.length} bytes`);
+
   results.push({ buffer: slide7, name: "7_Package_Contents.jpg" });
 
   // =========================================================================
@@ -420,30 +455,30 @@ export async function generateGallerySlides(
       
       <!-- Top Banner -->
       <rect x="0" y="0" width="${CANVAS_SIZE}" height="120" fill="#1E293B"/>
-      <text x="${CANVAS_SIZE / 2}" y="70" font-family="sans-serif" font-size="36" font-weight="bold" fill="#FFFFFF" text-anchor="middle">${escapeXml(truncateText(productName, 40))}</text>
+      <text x="${CANVAS_SIZE / 2}" y="70" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="36" font-weight="bold" fill="#FFFFFF" text-anchor="middle">${escapeXml(truncateText(productName, 40))}</text>
 
       <!-- Trust Badges (Bottom Grid) -->
       <g transform="translate(60, 920)">
         <!-- Badge 1 -->
         <rect x="0" y="0" width="340" height="180" rx="16" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="2"/>
         <circle cx="170" cy="55" r="30" fill="#F57224"/>
-        <text x="170" y="65" font-family="sans-serif" font-size="28" fill="#FFFFFF" text-anchor="middle">★</text>
-        <text x="170" y="125" font-family="sans-serif" font-size="20" font-weight="bold" fill="#1E293B" text-anchor="middle">100% Quality Tested</text>
-        <text x="170" y="150" font-family="sans-serif" font-size="14" fill="#64748B" text-anchor="middle">Inspected before dispatch</text>
+        <text x="170" y="65" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="28" fill="#FFFFFF" text-anchor="middle">★</text>
+        <text x="170" y="125" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="20" font-weight="bold" fill="#1E293B" text-anchor="middle">100% Quality Tested</text>
+        <text x="170" y="150" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="14" fill="#64748B" text-anchor="middle">Inspected before dispatch</text>
 
         <!-- Badge 2 -->
         <rect x="370" y="0" width="340" height="180" rx="16" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="2"/>
         <circle cx="540" cy="55" r="30" fill="#1E293B"/>
-        <text x="540" y="65" font-family="sans-serif" font-size="28" fill="#FFFFFF" text-anchor="middle">⚡</text>
-        <text x="540" y="125" font-family="sans-serif" font-size="20" font-weight="bold" fill="#1E293B" text-anchor="middle">Fast Shipping</text>
-        <text x="540" y="150" font-family="sans-serif" font-size="14" fill="#64748B" text-anchor="middle">Express Daraz fulfillment</text>
+        <text x="540" y="65" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="28" fill="#FFFFFF" text-anchor="middle">⚡</text>
+        <text x="540" y="125" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="20" font-weight="bold" fill="#1E293B" text-anchor="middle">Fast Shipping</text>
+        <text x="540" y="150" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="14" fill="#64748B" text-anchor="middle">Express Daraz fulfillment</text>
 
         <!-- Badge 3 -->
         <rect x="740" y="0" width="340" height="180" rx="16" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="2"/>
         <circle cx="910" cy="55" r="30" fill="#10B981"/>
-        <text x="910" y="65" font-family="sans-serif" font-size="28" fill="#FFFFFF" text-anchor="middle">✓</text>
-        <text x="910" y="125" font-family="sans-serif" font-size="20" font-weight="bold" fill="#1E293B" text-anchor="middle">Buyer Protection</text>
-        <text x="910" y="150" font-family="sans-serif" font-size="14" fill="#64748B" text-anchor="middle">Hassle-free replacement</text>
+        <text x="910" y="65" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="28" fill="#FFFFFF" text-anchor="middle">✓</text>
+        <text x="910" y="125" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="20" font-weight="bold" fill="#1E293B" text-anchor="middle">Buyer Protection</text>
+        <text x="910" y="150" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="14" fill="#64748B" text-anchor="middle">Hassle-free replacement</text>
       </g>
     </svg>
   `;
@@ -462,6 +497,11 @@ export async function generateGallerySlides(
     ])
     .jpeg({ quality: 92 })
     .toBuffer();
+
+  if (!slide8 || slide8.length === 0) {
+    throw new Error("[Composer Error] Slide 8 (Branded Closing) generated a 0-byte buffer");
+  }
+  console.log(`[Composer] Slide 8 (Branded Closing) composited: ${slide8.length} bytes`);
 
   results.push({ buffer: slide8, name: "8_Branded_Seller_Trust.jpg" });
 

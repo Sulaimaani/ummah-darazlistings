@@ -4,6 +4,10 @@ import { db } from "@/lib/db";
 import { galleries } from "@/lib/db/schema";
 import { eq, desc, and } from "drizzle-orm";
 import { z } from "zod";
+import { getPresignedUrlIfNeeded } from "@/lib/storage";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {
@@ -27,7 +31,20 @@ export async function GET() {
         .where(eq(galleries.userId, userId))
         .orderBy(desc(galleries.createdAt));
 
-      return NextResponse.json({ success: true, galleries: result });
+      // Resolve presigned URLs for preview rendering
+      const signedGalleries = await Promise.all(
+        result.map(async (g) => {
+          const generatedUrls = await Promise.all(
+            (g.generatedImageKeys || []).map((k) => getPresignedUrlIfNeeded(k))
+          );
+          return {
+            ...g,
+            generatedImageKeys: generatedUrls,
+          };
+        })
+      );
+
+      return NextResponse.json({ success: true, galleries: signedGalleries });
     } catch (dbErr) {
       console.warn("Database fetch warning for galleries:", dbErr);
       return NextResponse.json({ success: true, galleries: [] });
