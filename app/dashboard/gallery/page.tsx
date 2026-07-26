@@ -14,6 +14,7 @@ import {
   Plus,
   ChevronDown,
   ChevronUp,
+  Bookmark,
 } from "lucide-react";
 import { toast } from "sonner";
 import JSZip from "jszip";
@@ -97,6 +98,7 @@ export default function GalleryPage() {
   const [closingTitle, setClosingTitle] = useState("");
 
   const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [generatedImages, setGeneratedImages] = useState<GeneratedImage[]>([]);
   const [savedGalleries, setSavedGalleries] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState<"generator" | "history">("generator");
@@ -416,6 +418,45 @@ export default function GalleryPage() {
     const urlsJson = JSON.stringify(generatedImages);
     const proxyUrl = `/api/gallery/download?mode=zip&urls=${encodeURIComponent(urlsJson)}&productName=${encodeURIComponent(productName || "Daraz_Product")}`;
     window.location.href = proxyUrl;
+  };
+
+  // Save current gallery explicitly to database
+  const handleSaveCurrentGallery = async () => {
+    if (!generatedImages || generatedImages.length === 0) return;
+    setSaving(true);
+    try {
+      const res = await fetch("/api/gallery", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          productName: productName || "Product Gallery",
+          generatedImages,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to save gallery.");
+      toast.success("Gallery saved to your history archives!");
+      fetchSavedGalleries();
+    } catch (err: any) {
+      toast.error(err.message || "Failed to save gallery.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // Delete saved gallery from database
+  const handleDeleteGallery = async (id: string) => {
+    try {
+      const res = await fetch(`/api/gallery?id=${id}`, { method: "DELETE" });
+      if (res.ok) {
+        toast.success("Gallery deleted from archives.");
+        fetchSavedGalleries();
+      } else {
+        toast.error("Failed to delete gallery.");
+      }
+    } catch (e) {
+      toast.error("Failed to delete gallery.");
+    }
   };
 
   return (
@@ -1347,10 +1388,20 @@ export default function GalleryPage() {
                     <CheckCircle className="w-4 h-4 text-emerald-600" />
                     8 Gallery Slides Ready
                   </div>
-                  <button onClick={downloadAllAsZip} className="btn-primary text-xs py-2 px-4 shadow-sm">
-                    <FolderArchive className="w-4 h-4" />
-                    Download All as ZIP
-                  </button>
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={handleSaveCurrentGallery}
+                      disabled={saving}
+                      className="btn-outline text-xs py-2 px-4 shadow-xs flex items-center gap-1.5"
+                    >
+                      <Bookmark className="w-4 h-4 text-daraz-orange" />
+                      {saving ? "Saving..." : "Save Gallery"}
+                    </button>
+                    <button onClick={downloadAllAsZip} className="btn-primary text-xs py-2 px-4 shadow-sm flex items-center gap-1.5">
+                      <FolderArchive className="w-4 h-4" />
+                      Download All as ZIP
+                    </button>
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -1399,22 +1450,35 @@ export default function GalleryPage() {
               {savedGalleries.map((gal: any) => (
                 <div key={gal.id} className="p-4 border border-slate-200 rounded-xl space-y-3 bg-white">
                   <div className="flex items-center justify-between">
-                    <span className="font-bold text-sm text-slate-900 truncate max-w-[220px]">
+                    <span className="font-bold text-sm text-slate-900 truncate max-w-[200px]">
                       {gal.productName || "Product Gallery"}
                     </span>
-                    <span className="text-[10px] text-slate-400">
-                      {new Date(gal.createdAt).toLocaleDateString()}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] text-slate-400">
+                        {new Date(gal.createdAt).toLocaleDateString()}
+                      </span>
+                      <button
+                        onClick={() => handleDeleteGallery(gal.id)}
+                        className="p-1 text-slate-400 hover:text-red-600 transition-colors"
+                        title="Delete saved gallery"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                   </div>
                   <div className="grid grid-cols-4 gap-1.5">
                     {gal.generatedUrls?.slice(0, 4).map((img: any, i: number) => (
                       <div key={i} className="aspect-square bg-slate-100 rounded border overflow-hidden">
-                        <img src={img.url} alt={img.name} className="w-full h-full object-cover" />
+                        <img src={img.url} alt={img.name || `Slide ${i + 1}`} className="w-full h-full object-cover" />
                       </div>
                     ))}
                   </div>
                   <button
                     onClick={() => {
+                      if (!gal.generatedUrls || gal.generatedUrls.length === 0) {
+                        toast.error("No images found in this gallery.");
+                        return;
+                      }
                       const proxyUrl = `/api/gallery/download?mode=zip&urls=${encodeURIComponent(
                         JSON.stringify(gal.generatedUrls)
                       )}&productName=${encodeURIComponent(gal.productName || "Gallery")}`;

@@ -67,7 +67,8 @@ export async function compositeProductOnBackground(
 ): Promise<Buffer> {
   const CANVAS_SIZE = 1200;
 
-  // Prepare isolated product image scaled to fit within 820x820px canvas center
+  // Prepare isolated product PNG cutout scaled to fit within 820x820px canvas center
+  // Preserves 100% of original cutout pixels without color shift, modulation, or re-filtering
   const productOverlay = await sharp(productPngBuffer)
     .resize(820, 820, {
       fit: "contain",
@@ -75,17 +76,21 @@ export async function compositeProductOnBackground(
     })
     .toBuffer();
 
-  // Create ground shadow SVG overlay
+  // Dual-layer realistic ground shadow SVG overlay (tight contact shadow + ambient soft shadow)
   const shadowSvg = `
     <svg width="${CANVAS_SIZE}" height="${CANVAS_SIZE}" xmlns="http://www.w3.org/2000/svg">
       <defs>
-        <filter id="blurShadow" x="-20%" y="-20%" width="140%" height="140%">
-          <feGaussianBlur stdDeviation="24" />
+        <filter id="contactBlur" x="-30%" y="-30%" width="160%" height="160%">
+          <feGaussianBlur stdDeviation="12" />
+        </filter>
+        <filter id="ambientBlur" x="-40%" y="-40%" width="180%" height="180%">
+          <feGaussianBlur stdDeviation="28" />
         </filter>
       </defs>
-      <!-- Soft natural drop shadow under product -->
-      <ellipse cx="${CANVAS_SIZE / 2}" cy="970" rx="360" ry="40" fill="#0F172A" opacity="0.22" filter="url(#blurShadow)" />
-      <ellipse cx="${CANVAS_SIZE / 2}" cy="960" rx="280" ry="25" fill="#0F172A" opacity="0.3" filter="url(#blurShadow)" />
+      <!-- Tight contact shadow under product base -->
+      <ellipse cx="600" cy="945" rx="330" ry="22" fill="#0F172A" opacity="0.38" filter="url(#contactBlur)" />
+      <!-- Ambient soft spread shadow -->
+      <ellipse cx="600" cy="958" rx="420" ry="42" fill="#0F172A" opacity="0.18" filter="url(#ambientBlur)" />
     </svg>
   `;
 
@@ -96,12 +101,18 @@ export async function compositeProductOnBackground(
       bgSvg = `
         <svg width="${CANVAS_SIZE}" height="${CANVAS_SIZE}" xmlns="http://www.w3.org/2000/svg">
           <defs>
-            <linearGradient id="grad" x1="0" y1="0" x2="0" y2="1">
+            <linearGradient id="softGrad" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stop-color="#F8FAFC"/>
-              <stop offset="100%" stop-color="#E2E8F0"/>
+              <stop offset="50%" stop-color="#E2E8F0"/>
+              <stop offset="100%" stop-color="#CBD5E1"/>
             </linearGradient>
+            <radialGradient id="spotHighlight" cx="50%" cy="30%" r="50%">
+              <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.6"/>
+              <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0"/>
+            </radialGradient>
           </defs>
-          <rect width="${CANVAS_SIZE}" height="${CANVAS_SIZE}" fill="url(#grad)"/>
+          <rect width="${CANVAS_SIZE}" height="${CANVAS_SIZE}" fill="url(#softGrad)"/>
+          <rect width="${CANVAS_SIZE}" height="${CANVAS_SIZE}" fill="url(#spotHighlight)"/>
         </svg>
       `;
       break;
@@ -110,20 +121,26 @@ export async function compositeProductOnBackground(
       bgSvg = `
         <svg width="${CANVAS_SIZE}" height="${CANVAS_SIZE}" xmlns="http://www.w3.org/2000/svg">
           <defs>
-            <linearGradient id="wall" x1="0" y1="0" x2="0" y2="1">
+            <linearGradient id="kWall" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stop-color="#F8FAFC"/>
               <stop offset="100%" stop-color="#E2E8F0"/>
             </linearGradient>
-            <linearGradient id="counter" x1="0" y1="0" x2="0" y2="1">
+            <linearGradient id="kSurface" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stop-color="#FFFFFF"/>
+              <stop offset="40%" stop-color="#F1F5F9"/>
               <stop offset="100%" stop-color="#CBD5E1"/>
+            </linearGradient>
+            <linearGradient id="kReflection" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#94A3B8" stop-opacity="0.3"/>
+              <stop offset="100%" stop-color="#94A3B8" stop-opacity="0"/>
             </linearGradient>
           </defs>
           <!-- Wall background -->
-          <rect width="${CANVAS_SIZE}" height="840" fill="url(#wall)"/>
-          <!-- Countertop line & surface -->
-          <line x1="0" y1="840" x2="${CANVAS_SIZE}" y2="840" stroke="#94A3B8" stroke-width="4"/>
-          <rect x="0" y="840" width="${CANVAS_SIZE}" height="360" fill="url(#counter)"/>
+          <rect width="${CANVAS_SIZE}" height="810" fill="url(#kWall)"/>
+          <!-- Soft blurred horizon reflection band -->
+          <rect y="790" width="${CANVAS_SIZE}" height="40" fill="url(#kReflection)"/>
+          <!-- Countertop surface -->
+          <rect y="810" width="${CANVAS_SIZE}" height="390" fill="url(#kSurface)"/>
         </svg>
       `;
       break;
@@ -132,17 +149,17 @@ export async function compositeProductOnBackground(
       bgSvg = `
         <svg width="${CANVAS_SIZE}" height="${CANVAS_SIZE}" xmlns="http://www.w3.org/2000/svg">
           <defs>
-            <linearGradient id="mGrad" x1="0" y1="0" x2="1" y2="1">
+            <radialGradient id="mSpot" cx="50%" cy="50%" r="70%">
               <stop offset="0%" stop-color="#FFFFFF"/>
-              <stop offset="50%" stop-color="#F1F5F9"/>
+              <stop offset="70%" stop-color="#F8FAFC"/>
               <stop offset="100%" stop-color="#E2E8F0"/>
-            </linearGradient>
+            </radialGradient>
           </defs>
-          <rect width="${CANVAS_SIZE}" height="${CANVAS_SIZE}" fill="url(#mGrad)"/>
-          <!-- Subtle marble veining simulation -->
-          <path d="M 100,0 Q 300,400 200,800 T 600,1200" fill="none" stroke="#CBD5E1" stroke-width="6" opacity="0.35"/>
-          <path d="M 700,0 Q 900,300 850,700 T 1100,1200" fill="none" stroke="#94A3B8" stroke-width="4" opacity="0.25"/>
-          <path d="M 400,0 Q 200,600 500,1200" fill="none" stroke="#E2E8F0" stroke-width="8" opacity="0.5"/>
+          <rect width="${CANVAS_SIZE}" height="${CANVAS_SIZE}" fill="url(#mSpot)"/>
+          <!-- Soft organic marble veining -->
+          <path d="M 50,-50 C 350,300 200,600 650,1250" fill="none" stroke="#CBD5E1" stroke-width="8" opacity="0.3" stroke-linecap="round"/>
+          <path d="M 600,-50 C 850,350 750,750 1150,1250" fill="none" stroke="#94A3B8" stroke-width="5" opacity="0.2" stroke-linecap="round"/>
+          <path d="M 250,200 C 500,450 350,850 800,1250" fill="none" stroke="#E2E8F0" stroke-width="12" opacity="0.45" stroke-linecap="round"/>
         </svg>
       `;
       break;
@@ -151,17 +168,22 @@ export async function compositeProductOnBackground(
       bgSvg = `
         <svg width="${CANVAS_SIZE}" height="${CANVAS_SIZE}" xmlns="http://www.w3.org/2000/svg">
           <defs>
-            <linearGradient id="woodGrad" x1="0" y1="0" x2="0" y2="1">
+            <linearGradient id="wBase" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stop-color="#78350F"/>
-              <stop offset="50%" stop-color="#92400E"/>
+              <stop offset="40%" stop-color="#92400E"/>
               <stop offset="100%" stop-color="#451A03"/>
             </linearGradient>
+            <radialGradient id="wLight" cx="50%" cy="35%" r="60%">
+              <stop offset="0%" stop-color="#FDE68A" stop-opacity="0.25"/>
+              <stop offset="100%" stop-color="#78350F" stop-opacity="0"/>
+            </radialGradient>
           </defs>
-          <rect width="${CANVAS_SIZE}" height="${CANVAS_SIZE}" fill="url(#woodGrad)"/>
-          <!-- Wood plank lines -->
-          <line x1="0" y1="300" x2="${CANVAS_SIZE}" y2="300" stroke="#451A03" stroke-width="4" opacity="0.6"/>
-          <line x1="0" y1="600" x2="${CANVAS_SIZE}" y2="600" stroke="#451A03" stroke-width="4" opacity="0.6"/>
-          <line x1="0" y1="900" x2="${CANVAS_SIZE}" y2="900" stroke="#451A03" stroke-width="4" opacity="0.6"/>
+          <rect width="${CANVAS_SIZE}" height="${CANVAS_SIZE}" fill="url(#wBase)"/>
+          <rect width="${CANVAS_SIZE}" height="${CANVAS_SIZE}" fill="url(#wLight)"/>
+          <!-- Subtle organic wood grain waves -->
+          <path d="M -50,300 Q 600,280 1250,310" fill="none" stroke="#451A03" stroke-width="6" opacity="0.3"/>
+          <path d="M -50,600 Q 600,590 1250,610" fill="none" stroke="#451A03" stroke-width="6" opacity="0.3"/>
+          <path d="M -50,900 Q 600,910 1250,890" fill="none" stroke="#451A03" stroke-width="6" opacity="0.3"/>
         </svg>
       `;
       break;
@@ -170,7 +192,14 @@ export async function compositeProductOnBackground(
     default:
       bgSvg = `
         <svg width="${CANVAS_SIZE}" height="${CANVAS_SIZE}" xmlns="http://www.w3.org/2000/svg">
-          <rect width="${CANVAS_SIZE}" height="${CANVAS_SIZE}" fill="#FFFFFF"/>
+          <defs>
+            <radialGradient id="whiteSpot" cx="50%" cy="40%" r="65%">
+              <stop offset="0%" stop-color="#FFFFFF"/>
+              <stop offset="70%" stop-color="#FAFAFA"/>
+              <stop offset="100%" stop-color="#F1F5F9"/>
+            </radialGradient>
+          </defs>
+          <rect width="${CANVAS_SIZE}" height="${CANVAS_SIZE}" fill="url(#whiteSpot)"/>
         </svg>
       `;
       break;
@@ -189,7 +218,7 @@ export async function compositeProductOnBackground(
       { input: Buffer.from(shadowSvg), top: 0, left: 0 },
       { input: productOverlay, top: 150, left: (CANVAS_SIZE - 820) / 2 },
     ])
-    .jpeg({ quality: 93 })
+    .jpeg({ quality: 94 })
     .toBuffer();
 
   return finalJpeg;
