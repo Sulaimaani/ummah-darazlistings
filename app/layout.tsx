@@ -6,6 +6,8 @@ import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"] });
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Ummah DarazListings - AI SEO Listing Generator for Daraz Sellers",
   description:
