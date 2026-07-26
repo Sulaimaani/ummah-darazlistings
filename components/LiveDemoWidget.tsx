@@ -20,14 +20,14 @@ const DEMO_PRESETS = [
 • IPX7 Waterproof and sweat-resistant build ideal for workout, sports & outdoor use
 • Ergonomic touch sensor controls for volume, music tracks, and incoming calls
 • Built-in 2000mAh LED display power bank case supporting emergency phone charging`,
-      longDescription: `### Product Specifications & Features
-- **Model**: F9 TWS Stereo Earbuds
-- **Bluetooth Version**: V5.1 with auto-pairing protocol
-- **Battery Life**: 4–5 Hours continuous playback time per single charge
-- **Charging Case Capacity**: 2000mAh with digital LED battery indicator
-- **Waterproof Rating**: IPX7 Certified
+      longDescription: `PRODUCT SPECIFICATIONS & FEATURES:
+- Model: F9 TWS Stereo Earbuds
+- Bluetooth Version: V5.1 with auto-pairing protocol
+- Battery Life: 4–5 Hours continuous playback time per single charge
+- Charging Case Capacity: 2000mAh with digital LED battery indicator
+- Waterproof Rating: IPX7 Certified
 
-### What is included in the package?
+WHAT IS INCLUDED IN THE PACKAGE:
 - 2x Wireless Bluetooth Earbuds (Left & Right)
 - 1x Magnetic Charging Case Power Bank
 - 1x Type-C High Speed Charging Cable
@@ -49,14 +49,14 @@ const DEMO_PRESETS = [
 • 24/7 Health Monitoring: Blood Oxygen, Real-time Heart Rate & Sleep Tracking
 • Multi-Sport Tracking Modes including running, cycling, swimming, and workout steps
 • Wireless Fast Charger included with long-lasting 5-7 days standby battery life`,
-      longDescription: `### Overview
+      longDescription: `PRODUCT OVERVIEW:
 Stay connected and track your health goals with the Series 9 Ultra Smartwatch. Featuring a sleek alloy casing and responsive full-touch interface.
 
-### Tech Specs
-- **Screen**: 2.0-inch IPS Full Touch HD Display
-- **Battery**: 280mAh Lithium Polymer Battery
-- **Water Resistance**: IP67 Daily Splash Proof
-- **Compatibility**: Android 5.0+ and iOS 9.0+ via companion app`,
+TECHNICAL SPECIFICATIONS:
+- Screen: 2.0-inch IPS Full Touch HD Display
+- Battery: 280mAh Lithium Polymer Battery
+- Water Resistance: IP67 Daily Splash Proof
+- Compatibility: Android 5.0+ and iOS 9.0+ via companion app`,
     },
   },
 ];

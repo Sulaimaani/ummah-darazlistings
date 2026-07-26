@@ -13,8 +13,10 @@ A production-ready SaaS web application that generates SEO-optimized Daraz produ
    - Excludes banned promotional words (`best`, `cheap`, `sale`, `free shipping`, `#1`).
 3. **High-Converting Highlights**: Formats 4–6 concise bullet points in official Daraz "Highlights" format.
 4. **Structured Long Description**: Covers features, tech specs, package contents, and customer guarantees formatted for Daraz long-description fields.
-5. **Per-Field Copy & Saved History**: Per-field instant copy buttons with toast notifications and a dedicated dashboard history page backed by Neon PostgreSQL.
-6. **Rate Limiting**: Built-in sliding window rate limiter (15 listings per hour per user) protecting AI endpoints.
+5. **Product Gallery Image Generator**: Upload 1 to 3 real product photos and generate 5 to 8 composited 1:1 square (1200x1200px) e-commerce slides server-side using `sharp` (Hero slide, feature callouts, dimensions diagram, multi-angle grid, versatility banner, benefits list, package contents, seller trust badges).
+6. **ZIP Download & Storage**: Download individual slides or export all 8 slides as a `.zip` file using `jszip`. Backed by DigitalOcean Spaces / S3 object storage (with local fallback).
+7. **Per-Field Copy & Saved History**: Per-field instant copy buttons with toast notifications and a dedicated dashboard history page backed by Neon PostgreSQL.
+8. **Rate Limiting**: Built-in sliding window rate limiter (15 listings per hour per user) protecting AI endpoints.
 
 ---
 
@@ -25,9 +27,26 @@ A production-ready SaaS web application that generates SEO-optimized Daraz produ
 - **Auth**: Clerk (`@clerk/nextjs` v6)
 - **Database**: Neon (PostgreSQL)
 - **ORM**: Drizzle ORM & Drizzle Kit
+- **Image Compositor**: Sharp (`sharp` server-side 1200x1200px compositing)
+- **Object Storage**: DigitalOcean Spaces / AWS S3 SDK (`@aws-sdk/client-s3`)
 - **AI Engine**: Anthropic Claude 3.5 Sonnet (`@anthropic-ai/sdk`)
 - **Validation**: Zod
 - **Notifications**: Sonner
+
+---
+
+## ☁️ DigitalOcean Spaces (S3 Storage) Setup
+
+1. Log into your **DigitalOcean Console** and create a **Space** (e.g. `ummah-daraz-assets` in `sgp1` or `nyc3` region).
+2. Go to **API -> Spaces Access Keys** and generate an Access Key & Secret.
+3. Add the keys to `.env.local` or DigitalOcean App Platform Environment Variables:
+   ```env
+   SPACES_KEY="DO00xxxxxxxxxxxxxxxx"
+   SPACES_SECRET="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+   SPACES_BUCKET="ummah-daraz-assets"
+   SPACES_ENDPOINT="https://sgp1.digitaloceanspaces.com"
+   ```
+> *Note: If `SPACES_KEY` is not provided during local development, the app automatically falls back to saving files in `public/uploads` so developers can test immediately without S3 setup.*
 
 ---
 

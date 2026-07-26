@@ -12,6 +12,7 @@ import {
   HelpCircle,
   Menu,
   X,
+  Image as ImageIcon,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -29,6 +30,11 @@ export default function DashboardLayout({
       label: "SEO Generator",
       href: "/dashboard",
       icon: LayoutDashboard,
+    },
+    {
+      label: "Gallery Generator",
+      href: "/dashboard/gallery",
+      icon: ImageIcon,
     },
     {
       label: "Saved History",

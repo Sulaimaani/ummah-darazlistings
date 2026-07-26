@@ -36,7 +36,29 @@ export const listings = pgTable(
   })
 );
 
+export const galleries = pgTable(
+  "galleries",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.clerkId, { onDelete: "cascade" }),
+    sourceImageKeys: jsonb("source_image_keys").$type<string[]>().notNull(),
+    generatedImageKeys: jsonb("generated_image_keys").$type<string[]>().notNull(),
+    productName: text("product_name").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => ({
+    galleryUserIdIdx: index("galleries_user_id_idx").on(table.userId),
+    galleryCreatedAtIdx: index("galleries_created_at_idx").on(table.createdAt),
+  })
+);
+
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
 export type Listing = typeof listings.$inferSelect;
 export type NewListing = typeof listings.$inferInsert;
+export type Gallery = typeof galleries.$inferSelect;
+export type NewGallery = typeof galleries.$inferInsert;
