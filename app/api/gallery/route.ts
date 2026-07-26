@@ -120,10 +120,17 @@ export async function POST(req: Request) {
       .limit(1);
 
     if (userRow.length === 0) {
-      await db.insert(users).values({
-        clerkId: userId,
-        email: "seller@daraz.com",
-      });
+      try {
+        await db
+          .insert(users)
+          .values({
+            clerkId: userId,
+            email: "seller@daraz.com",
+          })
+          .onConflictDoNothing();
+      } catch (userErr) {
+        console.warn("User auto-creation notice:", userErr);
+      }
     }
 
     const [inserted] = await db
@@ -140,7 +147,7 @@ export async function POST(req: Request) {
   } catch (error: any) {
     console.error("POST save gallery error:", error);
     return NextResponse.json(
-      { error: "Failed to save gallery." },
+      { error: error?.message || "Failed to save gallery." },
       { status: 500 }
     );
   }
