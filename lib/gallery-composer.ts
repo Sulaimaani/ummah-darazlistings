@@ -312,7 +312,7 @@ export async function generateGallerySlides(
   // SLIDE 2: Feature Callouts (Auto-Sizing, 1-to-1 Slot Mapping, No Duplicates)
   // =========================================================================
   const userCallouts = (attrs.featureCallouts || []).filter((c) => c.trim().length > 0);
-  const calloutPhoto = await prepareMainPhoto(primaryBuf, 460, 460);
+  const calloutPhoto = await prepareMainPhoto(primaryBuf, 360, 360);
   const calloutTitle = attrs.featureCalloutsTitle || (userCallouts.length > 0 ? "KEY PRODUCT FEATURES" : "");
 
   const calloutBoxParts: string[] = [];
@@ -323,33 +323,33 @@ export async function generateGallerySlides(
   if (count > 0) {
     let slots: { y: number; isRight: boolean }[] = [];
     if (count === 1) {
-      slots = [{ y: 260, isRight: false }];
+      slots = [{ y: 550, isRight: false }];
     } else if (count === 2) {
       slots = [
-        { y: 280, isRight: false },
-        { y: 280, isRight: true },
+        { y: 360, isRight: false },
+        { y: 740, isRight: true },
       ];
     } else if (count === 3) {
       slots = [
-        { y: 260, isRight: false },
+        { y: 250, isRight: false },
         { y: 550, isRight: true },
-        { y: 840, isRight: false },
+        { y: 850, isRight: false },
       ];
     } else if (count === 4) {
       slots = [
-        { y: 260, isRight: false },
-        { y: 260, isRight: true },
-        { y: 840, isRight: false },
-        { y: 840, isRight: true },
+        { y: 240, isRight: false },
+        { y: 240, isRight: true },
+        { y: 860, isRight: false },
+        { y: 860, isRight: true },
       ];
     } else {
-      // 5 items: TL, TR, MidL, MidR, BL
+      // 5 items: distributed evenly across y: 200, 360, 520, 680, 840
       slots = [
-        { y: 230, isRight: false },
-        { y: 230, isRight: true },
-        { y: 550, isRight: false },
-        { y: 550, isRight: true },
-        { y: 850, isRight: false },
+        { y: 200, isRight: false },
+        { y: 360, isRight: true },
+        { y: 520, isRight: false },
+        { y: 680, isRight: true },
+        { y: 840, isRight: false },
       ];
     }
 
@@ -371,12 +371,12 @@ export async function generateGallerySlides(
 
       let posX = 50;
       let lineX1 = posX + boxWidth;
-      let lineX2 = 380;
+      let lineX2 = 410;
 
       if (slot.isRight) {
         posX = CANVAS_SIZE - 50 - boxWidth;
         lineX1 = posX;
-        lineX2 = 820;
+        lineX2 = 790;
       }
 
       const circleY = boxHeight / 2;
@@ -390,7 +390,7 @@ export async function generateGallerySlides(
         </g>
       `;
 
-      const targetPhotoY = Math.min(780, Math.max(380, slot.y));
+      const targetPhotoY = Math.min(740, Math.max(420, slot.y));
       const lineSvg = `
         <line x1="${lineX1}" y1="${slot.y}" x2="${lineX2}" y2="${targetPhotoY}" stroke="#F57224" stroke-width="3" stroke-dasharray="6,6"/>
       `;
@@ -438,7 +438,7 @@ export async function generateGallerySlides(
   })
     .composite([
       { input: Buffer.from(calloutSvg), top: 0, left: 0 },
-      { input: calloutPhoto, top: 350, left: 370 },
+      { input: calloutPhoto, top: 400, left: 420 },
     ])
     .jpeg({ quality: 92 })
     .toBuffer();
@@ -575,27 +575,25 @@ export async function generateGallerySlides(
     gridComposites.push({ input: p1, top: 180, left: 200 });
   } else if (photoCount === 2) {
     // 2 Photos: 2-Column Side-by-Side
-    const p1 = await prepareMainPhoto(sourceBuffers[0], 510, 800);
-    const p2 = await prepareMainPhoto(sourceBuffers[1], 510, 800);
+    const p1 = await prepareMainPhoto(sourceBuffers[0], 510, 820);
+    const p2 = await prepareMainPhoto(sourceBuffers[1], 510, 820);
     gridSvg = `
       <svg width="${CANVAS_SIZE}" height="${CANVAS_SIZE}" xmlns="http://www.w3.org/2000/svg">
         <rect width="${CANVAS_SIZE}" height="${CANVAS_SIZE}" fill="#F8FAFC"/>
         <rect x="0" y="0" width="${CANVAS_SIZE}" height="90" fill="#F57224"/>
         ${gridTitleFit.svg}
-        <rect x="60" y="150" width="520" height="850" rx="16" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="2"/>
-        <rect x="620" y="150" width="520" height="850" rx="16" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="2"/>
-        <text x="320" y="960" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="18" font-weight="bold" fill="#1E293B" text-anchor="middle">View Angle #1</text>
-        <text x="880" y="960" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="18" font-weight="bold" fill="#1E293B" text-anchor="middle">View Angle #2</text>
+        <rect x="60" y="150" width="520" height="870" rx="16" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="2"/>
+        <rect x="620" y="150" width="520" height="870" rx="16" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="2"/>
       </svg>
     `;
     gridComposites.push({ input: Buffer.from(gridSvg), top: 0, left: 0 });
-    gridComposites.push({ input: p1, top: 165, left: 65 });
-    gridComposites.push({ input: p2, top: 165, left: 625 });
+    gridComposites.push({ input: p1, top: 175, left: 65 });
+    gridComposites.push({ input: p2, top: 175, left: 625 });
   } else if (photoCount === 3) {
     // 3 Photos: 1 Main Left + 2 Stacked Right
-    const p1 = await prepareMainPhoto(sourceBuffers[0], 510, 800);
-    const p2 = await prepareMainPhoto(sourceBuffers[1], 510, 390);
-    const p3 = await prepareMainPhoto(sourceBuffers[2], 510, 390);
+    const p1 = await prepareMainPhoto(sourceBuffers[0], 510, 820);
+    const p2 = await prepareMainPhoto(sourceBuffers[1], 510, 400);
+    const p3 = await prepareMainPhoto(sourceBuffers[2], 510, 400);
     gridSvg = `
       <svg width="${CANVAS_SIZE}" height="${CANVAS_SIZE}" xmlns="http://www.w3.org/2000/svg">
         <rect width="${CANVAS_SIZE}" height="${CANVAS_SIZE}" fill="#F8FAFC"/>
@@ -604,21 +602,18 @@ export async function generateGallerySlides(
         <rect x="60" y="140" width="520" height="870" rx="16" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="2"/>
         <rect x="620" y="140" width="520" height="420" rx="16" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="2"/>
         <rect x="620" y="590" width="520" height="420" rx="16" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="2"/>
-        <text x="320" y="980" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="18" font-weight="bold" fill="#1E293B" text-anchor="middle">Primary Angle</text>
-        <text x="880" y="530" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="16" font-weight="bold" fill="#1E293B" text-anchor="middle">Secondary Angle</text>
-        <text x="880" y="980" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="16" font-weight="bold" fill="#1E293B" text-anchor="middle">Detail Angle</text>
       </svg>
     `;
     gridComposites.push({ input: Buffer.from(gridSvg), top: 0, left: 0 });
-    gridComposites.push({ input: p1, top: 155, left: 65 });
+    gridComposites.push({ input: p1, top: 165, left: 65 });
     gridComposites.push({ input: p2, top: 150, left: 625 });
     gridComposites.push({ input: p3, top: 600, left: 625 });
   } else {
     // 4 Photos: 2x2 Grid
-    const p1 = await prepareMainPhoto(sourceBuffers[0], 500, 430);
-    const p2 = await prepareMainPhoto(sourceBuffers[1], 500, 430);
-    const p3 = await prepareMainPhoto(sourceBuffers[2], 500, 430);
-    const p4 = await prepareMainPhoto(sourceBuffers[3], 500, 430);
+    const p1 = await prepareMainPhoto(sourceBuffers[0], 500, 460);
+    const p2 = await prepareMainPhoto(sourceBuffers[1], 500, 460);
+    const p3 = await prepareMainPhoto(sourceBuffers[2], 500, 460);
+    const p4 = await prepareMainPhoto(sourceBuffers[3], 500, 460);
     gridSvg = `
       <svg width="${CANVAS_SIZE}" height="${CANVAS_SIZE}" xmlns="http://www.w3.org/2000/svg">
         <rect width="${CANVAS_SIZE}" height="${CANVAS_SIZE}" fill="#F8FAFC"/>
@@ -628,10 +623,6 @@ export async function generateGallerySlides(
         <rect x="630" y="130" width="510" height="480" rx="16" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="2"/>
         <rect x="60" y="650" width="510" height="480" rx="16" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="2"/>
         <rect x="630" y="650" width="510" height="480" rx="16" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="2"/>
-        <text x="315" y="580" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="18" font-weight="bold" fill="#1E293B" text-anchor="middle">Front Angle</text>
-        <text x="885" y="580" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="18" font-weight="bold" fill="#1E293B" text-anchor="middle">Side Angle</text>
-        <text x="315" y="1100" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="18" font-weight="bold" fill="#1E293B" text-anchor="middle">Detail View</text>
-        <text x="885" y="1100" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="18" font-weight="bold" fill="#1E293B" text-anchor="middle">Package Angle</text>
       </svg>
     `;
     gridComposites.push({ input: Buffer.from(gridSvg), top: 0, left: 0 });
