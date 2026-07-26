@@ -30,9 +30,9 @@ export async function POST(req: Request) {
       );
     }
 
-    if (files.length > 3) {
+    if (files.length > 4) {
       return NextResponse.json(
-        { error: "Maximum 3 product photos allowed." },
+        { error: "Maximum 4 product photos allowed." },
         { status: 400 }
       );
     }
@@ -61,7 +61,22 @@ export async function POST(req: Request) {
     const topLeftBadgeText = (formData.get("topLeftBadgeText") as string) || "";
     const topRightBadgeText = (formData.get("topRightBadgeText") as string) || sizeWeightLabel;
     const featureCalloutsTitle = (formData.get("featureCalloutsTitle") as string) || "Key Product Features";
-    const dimensionsText = (formData.get("dimensionsText") as string) || "Standard Size";
+    const dimensionsText = (formData.get("dimensionsText") as string) || "";
+    const heightText = (formData.get("heightText") as string) || "";
+    const widthText = (formData.get("widthText") as string) || "";
+    const depthText = (formData.get("depthText") as string) || "";
+    const dimensionsTitle = (formData.get("dimensionsTitle") as string) || "Product Dimensions & Size";
+    const multiAngleTitle = (formData.get("multiAngleTitle") as string) || "Multi-Angle Showcase";
+
+    const versatilityTitle = (formData.get("versatilityTitle") as string) || "";
+    const versatilityPill = (formData.get("versatilityPill") as string) || "";
+    const versatilitySubheadline = (formData.get("versatilitySubheadline") as string) || "";
+
+    const benefitsTitle = (formData.get("benefitsTitle") as string) || "";
+    const packageTitle = (formData.get("packageTitle") as string) || "";
+    const packageListTitle = (formData.get("packageListTitle") as string) || "";
+    const closingTitle = (formData.get("closingTitle") as string) || "";
+
     const logoPosition = (formData.get("logoPosition") as any) || "None";
 
     // Validate and process optional Logo upload (max 2MB)
@@ -97,12 +112,28 @@ export async function POST(req: Request) {
       featureCallouts = [];
     }
 
-    let benefitsList: string[] = [];
+    let versatilityBullets: string[] = [];
+    try {
+      const vBulletsRaw = formData.get("versatilityBullets") as string;
+      if (vBulletsRaw) versatilityBullets = JSON.parse(vBulletsRaw);
+    } catch (e) {
+      versatilityBullets = [];
+    }
+
+    let benefitsList: any[] = [];
     try {
       const benefitsRaw = formData.get("benefitsList") as string;
       if (benefitsRaw) benefitsList = JSON.parse(benefitsRaw);
     } catch (e) {
       benefitsList = [];
+    }
+
+    let packageContents: string[] = [];
+    try {
+      const pkgRaw = formData.get("packageContents") as string;
+      if (pkgRaw) packageContents = JSON.parse(pkgRaw);
+    } catch (e) {
+      packageContents = [];
     }
 
     // Read source files into buffers
@@ -126,8 +157,22 @@ export async function POST(req: Request) {
       topRightBadgeText,
       featureCalloutsTitle,
       dimensionsText,
-      featureCallouts,
+      heightText,
+      widthText,
+      depthText,
+      dimensionsTitle,
+      multiAngleTitle,
+      versatilityTitle,
+      versatilityPill,
+      versatilitySubheadline,
+      versatilityBullets,
+      benefitsTitle,
       benefitsList,
+      packageTitle,
+      packageListTitle,
+      packageContents,
+      closingTitle,
+      featureCallouts,
       logoBuffer,
       logoPosition,
     });

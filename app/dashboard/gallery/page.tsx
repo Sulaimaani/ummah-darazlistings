@@ -33,12 +33,19 @@ export default function GalleryPage() {
   const [topRightBadgeText, setTopRightBadgeText] = useState("3LB / Standard Pack");
   const [featureCalloutsTitle, setFeatureCalloutsTitle] = useState("Key Product Features");
   const [dimensionsText, setDimensionsText] = useState('6.3" x 2.7"');
+  const [heightText, setHeightText] = useState('6.3"');
+  const [widthText, setWidthText] = useState('2.7"');
+  const [depthText, setDepthText] = useState('');
+  const [dimensionsTitle, setDimensionsTitle] = useState('Product Dimensions & Size');
   const [callouts, setCallouts] = useState<string[]>([
     "Ergonomic Comfort Fit",
     "High-Performance Chipset",
     "Durable Weatherproof Finish",
     "Universal Compatibility",
   ]);
+
+  // Live Preview selector tab
+  const [previewSlide, setPreviewSlide] = useState<"hero" | "callouts" | "dimensions" | "grid" | "trust">("hero");
 
   // Logo Overlay state
   const [logoFile, setLogoFile] = useState<File | null>(null);
@@ -86,8 +93,8 @@ export default function GalleryPage() {
     const validPreviews: string[] = [];
 
     for (const file of incoming) {
-      if (selectedFiles.length + validFiles.length >= 3) {
-        toast.error("Maximum 3 photos allowed.");
+      if (selectedFiles.length + validFiles.length >= 4) {
+        toast.error("Maximum 4 photos allowed.");
         break;
       }
       if (file.size > 8 * 1024 * 1024) {
@@ -154,7 +161,11 @@ export default function GalleryPage() {
       formData.append("topLeftBadgeText", topLeftBadgeText);
       formData.append("topRightBadgeText", topRightBadgeText);
       formData.append("featureCalloutsTitle", featureCalloutsTitle || "Key Product Features");
-      formData.append("dimensionsText", dimensionsText || '6.3" x 2.7"');
+      formData.append("dimensionsText", dimensionsText || `${heightText} x ${widthText}`);
+      formData.append("heightText", heightText);
+      formData.append("widthText", widthText);
+      formData.append("depthText", depthText);
+      formData.append("dimensionsTitle", dimensionsTitle || "Product Dimensions & Size");
       formData.append("logoPosition", logoPosition);
       if (logoFile) {
         formData.append("logo", logoFile);
@@ -269,15 +280,15 @@ export default function GalleryPage() {
             {/* Upload Box */}
             <div className="card-daraz space-y-4">
               <span className="text-xs font-bold text-slate-800 uppercase tracking-wider block">
-                1. Upload Product Photos ({selectedFiles.length}/3)
+                1. Upload Product Photos ({selectedFiles.length}/4)
               </span>
 
               {/* Upload Dropzone */}
-              {selectedFiles.length < 3 && (
+              {selectedFiles.length < 4 && (
                 <label className="border-2 border-dashed border-slate-300 hover:border-daraz-orange rounded-xl p-6 flex flex-col items-center justify-center text-center cursor-pointer bg-slate-50/50 hover:bg-orange-50/40 transition-colors">
                   <Upload className="w-8 h-8 text-daraz-orange mb-2" />
                   <span className="text-xs font-bold text-slate-800">
-                    Click to upload product photos
+                    Click to upload product photos (1–4 angles)
                   </span>
                   <span className="text-[11px] text-slate-500 mt-1">
                     JPG, PNG, or WebP • Max 8MB each
@@ -294,7 +305,7 @@ export default function GalleryPage() {
 
               {/* Thumbnail Previews */}
               {previews.length > 0 && (
-                <div className="grid grid-cols-3 gap-3 pt-2">
+                <div className="grid grid-cols-4 gap-2 pt-2">
                   {previews.map((src, idx) => (
                     <div key={idx} className="relative group rounded-lg overflow-hidden border border-slate-200 aspect-square">
                       <img src={src} alt="Upload preview" className="w-full h-full object-cover" />
@@ -412,31 +423,79 @@ export default function GalleryPage() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1">
-                      Feature Callouts Slide Title
-                    </label>
-                    <input
-                      type="text"
-                      value={featureCalloutsTitle}
-                      onChange={(e) => setFeatureCalloutsTitle(e.target.value)}
-                      placeholder="Key Product Features"
-                      className="input-daraz"
-                    />
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    Feature Callouts Slide Title
+                  </label>
+                  <input
+                    type="text"
+                    value={featureCalloutsTitle}
+                    onChange={(e) => setFeatureCalloutsTitle(e.target.value)}
+                    placeholder="Key Product Features"
+                    className="input-daraz"
+                  />
+                </div>
+
+                <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-slate-800">
+                      Product Dimensions (Slide #3)
+                    </span>
+                    <span className="text-[10px] text-slate-400">Separate Height & Width</span>
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1">
-                      Dimensions Label
+                    <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                      Dimensions Slide Title Header
                     </label>
                     <input
                       type="text"
-                      value={dimensionsText}
-                      onChange={(e) => setDimensionsText(e.target.value)}
-                      placeholder='e.g. 6.3" x 2.7"'
-                      className="input-daraz"
+                      value={dimensionsTitle}
+                      onChange={(e) => setDimensionsTitle(e.target.value)}
+                      placeholder="Product Dimensions & Size"
+                      className="input-daraz py-1 text-xs"
                     />
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-2">
+                    <div>
+                      <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                        Height (Vertical)
+                      </label>
+                      <input
+                        type="text"
+                        value={heightText}
+                        onChange={(e) => setHeightText(e.target.value)}
+                        placeholder='e.g. 6.3"'
+                        className="input-daraz py-1 text-xs"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                        Width (Horizontal)
+                      </label>
+                      <input
+                        type="text"
+                        value={widthText}
+                        onChange={(e) => setWidthText(e.target.value)}
+                        placeholder='e.g. 2.7"'
+                        className="input-daraz py-1 text-xs"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                        Depth (Optional)
+                      </label>
+                      <input
+                        type="text"
+                        value={depthText}
+                        onChange={(e) => setDepthText(e.target.value)}
+                        placeholder='e.g. 1.2"'
+                        className="input-daraz py-1 text-xs"
+                      />
+                    </div>
                   </div>
                 </div>
 
@@ -518,14 +577,263 @@ export default function GalleryPage() {
             )}
 
             {!loading && generatedImages.length === 0 && (
-              <div className="card-daraz py-20 text-center space-y-3 bg-slate-50/50 border-dashed border-2 border-slate-300">
-                <div className="w-12 h-12 rounded-xl bg-slate-100 text-slate-400 flex items-center justify-center mx-auto">
-                  <ImageIcon className="w-6 h-6" />
+              <div className="card-daraz space-y-4">
+                {/* Header & Disclaimer */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+                  <div>
+                    <h3 className="font-bold text-slate-900 text-base flex items-center gap-2">
+                      <Sparkles className="w-4 h-4 text-daraz-orange" />
+                      Live Layout Preview
+                    </h3>
+                    <p className="text-slate-500 text-[11px]">
+                      Client-side preview — final generated image may differ slightly in styling
+                    </p>
+                  </div>
+
+                  {/* Slide selector tabs */}
+                  <div className="flex bg-slate-100 p-0.5 rounded-lg self-start text-[11px]">
+                    <button
+                      onClick={() => setPreviewSlide("hero")}
+                      className={`px-2.5 py-1 font-semibold rounded transition-colors ${
+                        previewSlide === "hero" ? "bg-white text-slate-900 shadow-xs" : "text-slate-600"
+                      }`}
+                    >
+                      Hero
+                    </button>
+                    <button
+                      onClick={() => setPreviewSlide("callouts")}
+                      className={`px-2.5 py-1 font-semibold rounded transition-colors ${
+                        previewSlide === "callouts" ? "bg-white text-slate-900 shadow-xs" : "text-slate-600"
+                      }`}
+                    >
+                      Callouts
+                    </button>
+                    <button
+                      onClick={() => setPreviewSlide("dimensions")}
+                      className={`px-2.5 py-1 font-semibold rounded transition-colors ${
+                        previewSlide === "dimensions" ? "bg-white text-slate-900 shadow-xs" : "text-slate-600"
+                      }`}
+                    >
+                      Dimensions
+                    </button>
+                    <button
+                      onClick={() => setPreviewSlide("grid")}
+                      className={`px-2.5 py-1 font-semibold rounded transition-colors ${
+                        previewSlide === "grid" ? "bg-white text-slate-900 shadow-xs" : "text-slate-600"
+                      }`}
+                    >
+                      Grid
+                    </button>
+                    <button
+                      onClick={() => setPreviewSlide("trust")}
+                      className={`px-2.5 py-1 font-semibold rounded transition-colors ${
+                        previewSlide === "trust" ? "bg-white text-slate-900 shadow-xs" : "text-slate-600"
+                      }`}
+                    >
+                      Trust
+                    </button>
+                  </div>
                 </div>
-                <h3 className="font-bold text-slate-700 text-base">No Gallery Generated Yet</h3>
-                <p className="text-slate-500 text-xs max-w-sm mx-auto">
-                  Upload your product photos on the left, set optional attributes, and click "Generate Gallery" to preview all 8 composited slides.
-                </p>
+
+                {/* 1:1 Aspect Ratio Live Preview Canvas Container */}
+                <div className="aspect-square w-full max-w-[520px] mx-auto bg-white rounded-2xl border border-slate-200 overflow-hidden relative shadow-sm flex flex-col justify-between select-none">
+                  {/* SLIDE 1: HERO PREVIEW */}
+                  {previewSlide === "hero" && (
+                    <div className="w-full h-full relative bg-gradient-to-b from-white to-slate-50 p-6 flex flex-col justify-between">
+                      {/* Top Badges / Logo */}
+                      <div className="flex items-start justify-between w-full relative z-10">
+                        {/* Top-Left Badge */}
+                        {topLeftBadgeText && logoPosition !== "Top-Left" ? (
+                          <span className="px-3 py-1.5 bg-slate-900 text-white font-bold text-xs rounded-lg shadow-xs">
+                            {topLeftBadgeText}
+                          </span>
+                        ) : logoPreview && logoPosition === "Top-Left" ? (
+                          <img src={logoPreview} alt="Logo" className="w-16 h-10 object-contain" />
+                        ) : (
+                          <div />
+                        )}
+
+                        {/* Top-Right Badge */}
+                        {topRightBadgeText && logoPosition !== "Top-Right" ? (
+                          <span className="px-3.5 py-1.5 bg-daraz-orange text-white font-bold text-xs rounded-full shadow-xs">
+                            {topRightBadgeText}
+                          </span>
+                        ) : logoPreview && logoPosition === "Top-Right" ? (
+                          <img src={logoPreview} alt="Logo" className="w-16 h-10 object-contain" />
+                        ) : (
+                          <div />
+                        )}
+                      </div>
+
+                      {/* Center Product Image */}
+                      <div className="flex-1 flex items-center justify-center my-2 relative">
+                        {previews[0] ? (
+                          <img src={previews[0]} alt="Hero preview" className="max-h-[70%] max-w-[80%] object-contain" />
+                        ) : (
+                          <div className="w-40 h-40 border-2 border-dashed border-slate-300 rounded-2xl flex flex-col items-center justify-center text-slate-400 bg-slate-50/50">
+                            <ImageIcon className="w-10 h-10 mb-1 opacity-50" />
+                            <span className="text-xs font-semibold">Upload Photo</span>
+                          </div>
+                        )}
+
+                        {/* Bottom Corners Logos if configured */}
+                        {logoPreview && logoPosition === "Bottom-Left" && (
+                          <img src={logoPreview} alt="Logo" className="absolute bottom-2 left-2 w-16 h-10 object-contain" />
+                        )}
+                        {logoPreview && logoPosition === "Bottom-Right" && (
+                          <img src={logoPreview} alt="Logo" className="absolute bottom-2 right-2 w-16 h-10 object-contain" />
+                        )}
+                      </div>
+
+                      {/* Bottom Footer Banner */}
+                      <div className="bg-slate-900 text-white p-3 text-center -mx-6 -mb-6">
+                        <p className="font-bold text-sm truncate px-2">
+                          {productName || "YOUR PRODUCT TITLE OVERLAY"}
+                        </p>
+                        <p className="text-[10px] text-daraz-orange font-bold uppercase tracking-wider mt-0.5">
+                          PREMIUM QUALITY • ORIGINAL PRODUCT
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* SLIDE 2: FEATURE CALLOUTS PREVIEW */}
+                  {previewSlide === "callouts" && (
+                    <div className="w-full h-full relative bg-slate-50 flex flex-col justify-between">
+                      <div className="bg-daraz-orange text-white p-3 text-center font-bold text-sm tracking-wide">
+                        {featureCalloutsTitle ? featureCalloutsTitle.toUpperCase() : "KEY PRODUCT FEATURES"}
+                      </div>
+
+                      <div className="flex-1 p-4 relative flex items-center justify-center">
+                        {/* Center Photo */}
+                        {previews[0] ? (
+                          <img src={previews[0]} alt="Product" className="w-36 h-36 object-contain z-10" />
+                        ) : (
+                          <div className="w-32 h-32 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-400 text-xs font-bold z-10 shadow-xs">
+                            Product
+                          </div>
+                        )}
+
+                        {/* Render Callout Cards Overlay */}
+                        <div className="absolute inset-0 p-4 flex flex-col justify-around pointer-events-none">
+                          {callouts.map((text, idx) => (
+                            <div
+                              key={idx}
+                              className={`flex items-center gap-1.5 ${
+                                idx % 2 === 0 ? "self-start" : "self-end"
+                              }`}
+                            >
+                              <div className="bg-white border-2 border-daraz-orange px-2.5 py-1 rounded-lg text-[10px] font-bold text-slate-800 shadow-xs max-w-[150px]">
+                                {text || `Callout #${idx + 1}`}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* SLIDE 3: DIMENSIONS PREVIEW */}
+                  {previewSlide === "dimensions" && (
+                    <div className="w-full h-full relative bg-white flex flex-col justify-between">
+                      <div className="bg-slate-900 text-white p-3 text-center font-bold text-sm tracking-wide">
+                        {dimensionsTitle ? dimensionsTitle.toUpperCase() : "PRODUCT DIMENSIONS & SIZE"}
+                      </div>
+
+                      <div className="flex-1 p-8 relative flex items-center justify-center">
+                        {/* Depth badge if present */}
+                        {depthText && (
+                          <div className="absolute top-3 right-3 bg-slate-900 text-white text-[10px] font-bold px-2 py-1 rounded border border-daraz-orange">
+                            DEPTH: {depthText}
+                          </div>
+                        )}
+
+                        {/* Height vertical line */}
+                        {heightText && (
+                          <div className="absolute left-6 top-10 bottom-10 flex flex-col items-center justify-center">
+                            <div className="w-0.5 flex-1 bg-daraz-orange" />
+                            <span className="my-1 px-1.5 py-0.5 bg-daraz-orange text-white text-[10px] font-bold rounded -rotate-90">
+                              {heightText}
+                            </span>
+                            <div className="w-0.5 flex-1 bg-daraz-orange" />
+                          </div>
+                        )}
+
+                        {/* Product Photo */}
+                        {previews[0] ? (
+                          <img src={previews[0]} alt="Product" className="max-h-[65%] max-w-[65%] object-contain" />
+                        ) : (
+                          <div className="w-36 h-36 border border-slate-200 rounded-xl flex items-center justify-center text-slate-400 text-xs font-semibold">
+                            Product
+                          </div>
+                        )}
+
+                        {/* Width horizontal line */}
+                        {widthText && (
+                          <div className="absolute bottom-4 left-12 right-12 flex items-center justify-center">
+                            <div className="h-0.5 flex-1 bg-daraz-orange" />
+                            <span className="mx-1 px-2 py-0.5 bg-daraz-orange text-white text-[10px] font-bold rounded">
+                              {widthText}
+                            </span>
+                            <div className="h-0.5 flex-1 bg-daraz-orange" />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* SLIDE 4: SHOWCASE GRID PREVIEW */}
+                  {previewSlide === "grid" && (
+                    <div className="w-full h-full relative bg-slate-50 flex flex-col justify-between p-3">
+                      <div className="bg-daraz-orange text-white p-2 rounded text-center font-bold text-xs">
+                        MULTI-ANGLE SHOWCASE
+                      </div>
+                      <div className="grid grid-cols-2 gap-2 flex-1 my-2">
+                        {[0, 1, 2, 0].map((imgIdx, i) => (
+                          <div key={i} className="bg-white rounded-lg border border-slate-200 p-1 flex flex-col items-center justify-center">
+                            {previews[imgIdx] ? (
+                              <img src={previews[imgIdx]} alt={`Angle ${i}`} className="w-full h-20 object-contain" />
+                            ) : (
+                              <div className="text-[10px] text-slate-400 font-semibold">Angle #{i + 1}</div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* SLIDE 8: SELLER PROTECTION PREVIEW */}
+                  {previewSlide === "trust" && (
+                    <div className="w-full h-full relative bg-slate-50 flex flex-col justify-between">
+                      <div className="bg-slate-900 text-white p-3 text-center font-bold text-xs truncate">
+                        {productName || "YOUR PRODUCT TITLE OVERLAY"}
+                      </div>
+                      <div className="flex-1 flex items-center justify-center p-4">
+                        {previews[0] ? (
+                          <img src={previews[0]} alt="Product" className="h-32 object-contain" />
+                        ) : (
+                          <div className="w-28 h-28 bg-white border rounded-xl flex items-center justify-center text-slate-400 text-xs">
+                            Product
+                          </div>
+                        )}
+                      </div>
+                      <div className="grid grid-cols-3 gap-1 p-3 bg-white border-t border-slate-200">
+                        <div className="text-center p-1 bg-slate-50 rounded border border-slate-100">
+                          <span className="text-amber-500 font-bold text-xs block">★</span>
+                          <span className="text-[9px] font-bold text-slate-800">Quality Tested</span>
+                        </div>
+                        <div className="text-center p-1 bg-slate-50 rounded border border-slate-100">
+                          <span className="text-slate-800 font-bold text-xs block">⚡</span>
+                          <span className="text-[9px] font-bold text-slate-800">Fast Shipping</span>
+                        </div>
+                        <div className="text-center p-1 bg-slate-50 rounded border border-slate-100">
+                          <span className="text-emerald-600 font-bold text-xs block">✓</span>
+                          <span className="text-[9px] font-bold text-slate-800">Protection</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
 
