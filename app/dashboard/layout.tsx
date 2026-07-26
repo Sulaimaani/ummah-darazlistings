@@ -13,6 +13,7 @@ import {
   Menu,
   X,
   Image as ImageIcon,
+  Wand2,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -35,6 +36,11 @@ export default function DashboardLayout({
       label: "Gallery Generator",
       href: "/dashboard/gallery",
       icon: ImageIcon,
+    },
+    {
+      label: "AI Product Studio",
+      href: "/dashboard/studio",
+      icon: Wand2,
     },
     {
       label: "Saved History",

@@ -1359,24 +1359,24 @@ export default function GalleryPage() {
                   </button>
                 </div>
 
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {generatedImages.map((img, idx) => (
-                    <div key={idx} className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-xs space-y-2 p-3">
-                      <div className="aspect-square bg-slate-100 rounded-lg overflow-hidden relative border border-slate-200">
-                        <img src={img.url} alt={img.name} className="w-full h-full object-cover" />
-                        <span className="absolute top-2 left-2 bg-slate-900/80 text-white text-[10px] font-bold px-2 py-0.5 rounded">
-                          Slide #{idx + 1}
+                    <div key={idx} className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-xs p-4 space-y-3">
+                      <div className="aspect-square bg-slate-50 rounded-lg overflow-hidden relative border border-slate-200">
+                        <img src={img.url} alt={img.name} className="w-full h-full object-contain" />
+                        <span className="absolute top-2 left-2 bg-slate-900/80 text-white text-[11px] font-bold px-2.5 py-1 rounded-lg">
+                          Slide {idx + 1} of 8
                         </span>
                       </div>
-                      <div className="flex items-center justify-between pt-1">
-                        <span className="text-[11px] font-semibold text-slate-700 truncate max-w-[160px]">
+                      <div className="flex items-center justify-between gap-3">
+                        <span className="text-xs font-semibold text-slate-700 break-all leading-tight">
                           {img.name}
                         </span>
                         <button
                           onClick={() => downloadSingleImage(img.url, img.name)}
-                          className="btn-outline text-xs py-1 px-2.5 flex items-center gap-1"
+                          className="btn-outline text-xs py-1.5 px-3 flex items-center gap-1.5 shrink-0 whitespace-nowrap"
                         >
-                          <Download className="w-3.5 h-3.5" /> Single File
+                          <Download className="w-3.5 h-3.5" /> Download
                         </button>
                       </div>
                     </div>
