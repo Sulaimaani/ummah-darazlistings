@@ -32,6 +32,8 @@ export interface GalleryInputAttributes {
   featureCallouts?: string[]; // 0 to 5 bullet callouts
   logoBuffer?: Buffer;
   logoPosition?: "Top-Left" | "Top-Right" | "Bottom-Left" | "Bottom-Right" | "None";
+  /** Per-slide image buffer overrides. Keys: hero, callouts, dimensions, versatility, benefits, package, trust */
+  slideBuffers?: Partial<Record<string, Buffer>>;
 }
 
 // =========================================================================
@@ -173,6 +175,11 @@ export async function generateGallerySlides(
     throw new Error("[Composer Error] At least 1 primary photo buffer is required.");
   }
 
+  // Per-slide image override helper
+  const getSlideBuffer = (slideKey: string): Buffer => {
+    return attrs.slideBuffers?.[slideKey] || primaryBuf;
+  };
+
   async function prepareMainPhoto(
     buf: Buffer,
     targetWidth: number,
@@ -191,7 +198,7 @@ export async function generateGallerySlides(
   // =========================================================================
   // SLIDE 1: Hero (White background, customizable badges, logo overlay)
   // =========================================================================
-  const heroPhoto = await prepareMainPhoto(primaryBuf, 820, 820);
+  const heroPhoto = await prepareMainPhoto(getSlideBuffer("hero"), 820, 820);
 
   const topLeftBadge = (attrs.topLeftBadgeText || "").trim();
   const topRightBadge = (attrs.topRightBadgeText || attrs.sizeWeightLabel || "").trim();
@@ -312,7 +319,7 @@ export async function generateGallerySlides(
   // SLIDE 2: Feature Callouts (Auto-Sizing, 1-to-1 Slot Mapping, No Duplicates)
   // =========================================================================
   const userCallouts = (attrs.featureCallouts || []).filter((c) => c.trim().length > 0);
-  const calloutPhoto = await prepareMainPhoto(primaryBuf, 360, 360);
+  const calloutPhoto = await prepareMainPhoto(getSlideBuffer("callouts"), 360, 360);
   const calloutTitle = attrs.featureCalloutsTitle || (userCallouts.length > 0 ? "KEY PRODUCT FEATURES" : "");
 
   const calloutBoxParts: string[] = [];
@@ -448,7 +455,7 @@ export async function generateGallerySlides(
   // =========================================================================
   // SLIDE 3: Dimensions Slide (Separate Height, Width, Depth + Legacy Fallback)
   // =========================================================================
-  const dimPhoto = await prepareMainPhoto(primaryBuf, 700, 700);
+  const dimPhoto = await prepareMainPhoto(getSlideBuffer("dimensions"), 700, 700);
   const { height: heightVal, width: widthVal, depth: depthVal } = parseDimensions(attrs);
   const dimTitle = attrs.dimensionsTitle || (heightVal || widthVal ? "PRODUCT DIMENSIONS & SIZE" : "");
 
@@ -649,7 +656,7 @@ export async function generateGallerySlides(
   // =========================================================================
   // SLIDE 5: Versatility / Multipurpose Banner (Clean Photo Boundary)
   // =========================================================================
-  const versaPhoto = await prepareMainPhoto(primaryBuf, 720, 680);
+  const versaPhoto = await prepareMainPhoto(getSlideBuffer("versatility"), 720, 680);
   const versaPill = (attrs.versatilityPill || "").trim();
   const versaTitle = (attrs.versatilityTitle || "").trim();
   const versaSub = (attrs.versatilitySubheadline || "").trim();
@@ -742,7 +749,7 @@ export async function generateGallerySlides(
   // =========================================================================
   // SLIDE 6: Product Benefits (Auto-Sizing Cards, Dynamic User Input)
   // =========================================================================
-  const benefitPhoto = await prepareMainPhoto(primaryBuf, 540, 540);
+  const benefitPhoto = await prepareMainPhoto(getSlideBuffer("benefits"), 540, 540);
   const benefitTitle = attrs.benefitsTitle || (attrs.benefitsList && attrs.benefitsList.length > 0 ? "WHY CHOOSE THIS PRODUCT?" : "");
 
   // Normalize benefit items
@@ -849,7 +856,7 @@ export async function generateGallerySlides(
   // =========================================================================
   // SLIDE 7: Package Showcase / What's in the Box (Photo Above Banner)
   // =========================================================================
-  const pkgPhoto = await prepareMainPhoto(primaryBuf, 700, 650);
+  const pkgPhoto = await prepareMainPhoto(getSlideBuffer("package"), 700, 650);
   const pkgTitle = attrs.packageTitle || (attrs.packageContents && attrs.packageContents.length > 0 ? "WHAT IS IN THE PACKAGE?" : "");
   const pkgListTitle = attrs.packageListTitle || "Package Contents List:";
   const userPkgItems = (attrs.packageContents || []).filter((i) => i.trim().length > 0);
@@ -924,7 +931,7 @@ export async function generateGallerySlides(
   // =========================================================================
   // SLIDE 8: Branded Closing / Seller Protection (Customizable Badges)
   // =========================================================================
-  const closingPhoto = await prepareMainPhoto(primaryBuf, 700, 700);
+  const closingPhoto = await prepareMainPhoto(getSlideBuffer("trust"), 700, 700);
   const closingTitle = attrs.closingTitle || productName || "PREMIUM QUALITY GUARANTEED";
 
   const closingTitleFit = fitTextToBox({

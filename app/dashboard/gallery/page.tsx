@@ -30,6 +30,15 @@ interface BenefitItem {
 
 type SlideKey = "hero" | "callouts" | "dimensions" | "grid" | "versatility" | "benefits" | "package" | "trust";
 
+type SingleImageSlideKey = Exclude<SlideKey, "grid">;
+
+interface SlideImageOverride {
+  source: "pool" | "custom";
+  poolIndex: number;
+  customFile?: File;
+  customPreview?: string;
+}
+
 export default function GalleryPage() {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [previews, setPreviews] = useState<string[]>([]);
@@ -97,6 +106,111 @@ export default function GalleryPage() {
   const [generatedImages, setGeneratedImages] = useState<GeneratedImage[]>([]);
   const [savedGalleries, setSavedGalleries] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState<"generator" | "history">("generator");
+
+  // Per-slide image override state
+  const defaultSlideImages: Record<SingleImageSlideKey, SlideImageOverride> = {
+    hero: { source: "pool", poolIndex: 0 },
+    callouts: { source: "pool", poolIndex: 0 },
+    dimensions: { source: "pool", poolIndex: 0 },
+    versatility: { source: "pool", poolIndex: 0 },
+    benefits: { source: "pool", poolIndex: 0 },
+    package: { source: "pool", poolIndex: 0 },
+    trust: { source: "pool", poolIndex: 0 },
+  };
+  const [slideImages, setSlideImages] = useState<Record<SingleImageSlideKey, SlideImageOverride>>(defaultSlideImages);
+
+  // Helper: get the preview URL for a given slide (respects per-slide override)
+  const getSlidePreview = (key: SingleImageSlideKey): string | undefined => {
+    const override = slideImages[key];
+    if (override?.source === "custom" && override.customPreview) return override.customPreview;
+    return previews[override?.poolIndex ?? 0];
+  };
+
+  const setSlidePool = (key: SingleImageSlideKey, poolIndex: number) => {
+    setSlideImages(prev => ({ ...prev, [key]: { source: "pool", poolIndex } }));
+  };
+
+  const setSlideCustom = (key: SingleImageSlideKey, file: File) => {
+    const preview = URL.createObjectURL(file);
+    setSlideImages(prev => ({
+      ...prev,
+      [key]: { source: "custom", poolIndex: 0, customFile: file, customPreview: preview },
+    }));
+  };
+
+  const clearSlideOverride = (key: SingleImageSlideKey) => {
+    setSlideImages(prev => ({ ...prev, [key]: { source: "pool", poolIndex: 0 } }));
+  };
+
+  // Reusable per-slide image picker UI
+  const renderSlideImagePicker = (slideKey: SingleImageSlideKey) => {
+    const override = slideImages[slideKey];
+    const isCustom = override.source === "custom" && override.customPreview;
+
+    return (
+      <div className="pt-2 border-t border-slate-100 space-y-1.5">
+        <label className="block text-[11px] font-semibold text-slate-700">Image for this Slide</label>
+        <div className="flex items-center gap-1.5 flex-wrap">
+          {/* Thumbnail pool picker */}
+          {previews.map((src, idx) => (
+            <button
+              key={idx}
+              type="button"
+              onClick={() => setSlidePool(slideKey, idx)}
+              className={`w-10 h-10 rounded-lg border-2 overflow-hidden shrink-0 transition-all ${
+                !isCustom && override.poolIndex === idx
+                  ? "border-daraz-orange ring-2 ring-daraz-orange/30 scale-105"
+                  : "border-slate-200 hover:border-slate-400 opacity-70 hover:opacity-100"
+              }`}
+              title={`Use uploaded photo #${idx + 1}`}
+            >
+              <img src={src} alt={`Photo ${idx + 1}`} className="w-full h-full object-cover" />
+            </button>
+          ))}
+
+          {/* Custom upload button */}
+          {isCustom ? (
+            <div className="relative w-10 h-10 rounded-lg border-2 border-emerald-500 ring-2 ring-emerald-400/30 overflow-hidden shrink-0">
+              <img src={override.customPreview!} alt="Custom" className="w-full h-full object-cover" />
+              <button
+                type="button"
+                onClick={() => clearSlideOverride(slideKey)}
+                className="absolute -top-0.5 -right-0.5 p-0.5 bg-red-600 text-white rounded-full"
+                title="Remove custom image"
+              >
+                <Trash2 className="w-2.5 h-2.5" />
+              </button>
+            </div>
+          ) : (
+            <label
+              className="w-10 h-10 rounded-lg border-2 border-dashed border-slate-300 hover:border-daraz-orange flex items-center justify-center cursor-pointer bg-slate-50 hover:bg-orange-50/40 transition-colors shrink-0"
+              title="Upload a different image for this slide"
+            >
+              <Plus className="w-4 h-4 text-slate-400" />
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  if (file.size > 8 * 1024 * 1024) { toast.error("Max 8MB per image."); return; }
+                  if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) { toast.error("JPG, PNG, or WebP only."); return; }
+                  setSlideCustom(slideKey, file);
+                }}
+              />
+            </label>
+          )}
+        </div>
+        {isCustom && (
+          <span className="text-[10px] text-emerald-600 font-semibold">✓ Using custom image for this slide</span>
+        )}
+        {!isCustom && override.poolIndex > 0 && (
+          <span className="text-[10px] text-daraz-orange font-semibold">Using uploaded photo #{override.poolIndex + 1}</span>
+        )}
+      </div>
+    );
+  };
 
   // Logo file handler
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -248,6 +362,17 @@ export default function GalleryPage() {
       }
       formData.append("featureCallouts", JSON.stringify(callouts.filter(c => c.trim())));
 
+      // Append per-slide image overrides
+      const singleSlideKeys: SingleImageSlideKey[] = ["hero", "callouts", "dimensions", "versatility", "benefits", "package", "trust"];
+      for (const slideKey of singleSlideKeys) {
+        const override = slideImages[slideKey];
+        if (override.source === "custom" && override.customFile) {
+          formData.append(`slideImage_${slideKey}`, override.customFile);
+        } else if (override.source === "pool" && override.poolIndex > 0) {
+          formData.append(`slideImagePool_${slideKey}`, override.poolIndex.toString());
+        }
+      }
+
       const res = await fetch("/api/gallery/generate", {
         method: "POST",
         body: formData,
@@ -259,7 +384,7 @@ export default function GalleryPage() {
         throw new Error(data.error || "Failed to generate product gallery.");
       }
 
-      setGeneratedImages(data.slides || []);
+      setGeneratedImages(data.generatedImages || []);
       toast.success("Product gallery with 8 slides generated successfully!");
       fetchSavedGalleries();
     } catch (err: any) {
@@ -467,6 +592,7 @@ export default function GalleryPage() {
                         </select>
                       </div>
                     </div>
+                    {renderSlideImagePicker("hero")}
                   </div>
                 )}
               </div>
@@ -521,6 +647,7 @@ export default function GalleryPage() {
                         </button>
                       )}
                     </div>
+                    {renderSlideImagePicker("callouts")}
                   </div>
                 )}
               </div>
@@ -585,6 +712,7 @@ export default function GalleryPage() {
                         />
                       </div>
                     </div>
+                    {renderSlideImagePicker("dimensions")}
                   </div>
                 )}
               </div>
@@ -682,6 +810,7 @@ export default function GalleryPage() {
                         />
                       ))}
                     </div>
+                    {renderSlideImagePicker("versatility")}
                   </div>
                 )}
               </div>
@@ -747,6 +876,7 @@ export default function GalleryPage() {
                         </button>
                       )}
                     </div>
+                    {renderSlideImagePicker("benefits")}
                   </div>
                 )}
               </div>
@@ -812,6 +942,7 @@ export default function GalleryPage() {
                         </button>
                       )}
                     </div>
+                    {renderSlideImagePicker("package")}
                   </div>
                 )}
               </div>
@@ -841,6 +972,7 @@ export default function GalleryPage() {
                         className="input-daraz py-1 text-xs"
                       />
                     </div>
+                    {renderSlideImagePicker("trust")}
                   </div>
                 )}
               </div>
@@ -993,8 +1125,8 @@ export default function GalleryPage() {
                       </div>
 
                       <div className="flex-1 flex items-center justify-center my-2 relative">
-                        {previews[0] ? (
-                          <img src={previews[0]} alt="Hero preview" className="max-h-[70%] max-w-[80%] object-contain" />
+                        {getSlidePreview("hero") ? (
+                          <img src={getSlidePreview("hero")} alt="Hero preview" className="max-h-[70%] max-w-[80%] object-contain" />
                         ) : (
                           <div className="w-40 h-40 border-2 border-dashed border-slate-300 rounded-2xl flex flex-col items-center justify-center text-slate-400 bg-slate-50/50">
                             <ImageIcon className="w-10 h-10 mb-1 opacity-50" />
@@ -1022,8 +1154,8 @@ export default function GalleryPage() {
                       </div>
 
                       <div className="flex-1 p-4 relative flex items-center justify-center">
-                        {previews[0] ? (
-                          <img src={previews[0]} alt="Product" className="w-32 h-32 object-contain z-10" />
+                        {getSlidePreview("callouts") ? (
+                          <img src={getSlidePreview("callouts")} alt="Product" className="w-32 h-32 object-contain z-10" />
                         ) : (
                           <div className="w-28 h-28 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-400 text-xs font-bold z-10 shadow-xs">
                             Product
@@ -1067,8 +1199,8 @@ export default function GalleryPage() {
                           </div>
                         )}
 
-                        {previews[0] ? (
-                          <img src={previews[0]} alt="Product" className="max-h-[65%] max-w-[65%] object-contain" />
+                        {getSlidePreview("dimensions") ? (
+                          <img src={getSlidePreview("dimensions")} alt="Product" className="max-h-[65%] max-w-[65%] object-contain" />
                         ) : (
                           <div className="w-36 h-36 border border-slate-200 rounded-xl flex items-center justify-center text-slate-400 text-xs font-semibold">
                             Product
@@ -1117,8 +1249,8 @@ export default function GalleryPage() {
                         </span>
                       )}
                       <div className="flex-1 flex items-center justify-center my-2">
-                        {previews[0] ? (
-                          <img src={previews[0]} alt="Product" className="max-h-40 object-contain" />
+                        {getSlidePreview("versatility") ? (
+                          <img src={getSlidePreview("versatility")} alt="Product" className="max-h-40 object-contain" />
                         ) : (
                           <div className="w-28 h-28 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-center text-slate-400 text-xs">Product</div>
                         )}
@@ -1145,7 +1277,7 @@ export default function GalleryPage() {
                       </div>
                       <div className="flex-1 p-3 grid grid-cols-2 gap-2">
                         <div className="flex items-center justify-center border rounded-xl bg-white p-2">
-                          {previews[0] ? <img src={previews[0]} alt="Product" className="max-h-32 object-contain" /> : <span className="text-xs text-slate-400">Photo</span>}
+                          {getSlidePreview("benefits") ? <img src={getSlidePreview("benefits")} alt="Product" className="max-h-32 object-contain" /> : <span className="text-xs text-slate-400">Photo</span>}
                         </div>
                         <div className="space-y-2 overflow-hidden">
                           {benefitsList.filter(b => b.title.trim()).map((b, i) => (
@@ -1166,7 +1298,7 @@ export default function GalleryPage() {
                         {packageTitle.toUpperCase()}
                       </div>
                       <div className="flex-1 flex items-center justify-center p-3">
-                        {previews[0] ? <img src={previews[0]} alt="Product" className="max-h-36 object-contain" /> : <span className="text-xs text-slate-400">Photo</span>}
+                        {getSlidePreview("package") ? <img src={getSlidePreview("package")} alt="Product" className="max-h-36 object-contain" /> : <span className="text-xs text-slate-400">Photo</span>}
                       </div>
                       {packageContents.some(p => p.trim()) && (
                         <div className="bg-slate-900 text-white p-3 rounded-t-xl space-y-1">
@@ -1186,8 +1318,8 @@ export default function GalleryPage() {
                         {closingTitle || productName || "YOUR PRODUCT TITLE OVERLAY"}
                       </div>
                       <div className="flex-1 flex items-center justify-center p-4">
-                        {previews[0] ? (
-                          <img src={previews[0]} alt="Product" className="h-32 object-contain" />
+                        {getSlidePreview("trust") ? (
+                          <img src={getSlidePreview("trust")} alt="Product" className="h-32 object-contain" />
                         ) : (
                           <div className="w-28 h-28 bg-white border rounded-xl flex items-center justify-center text-slate-400 text-xs">
                             Product
@@ -1227,7 +1359,7 @@ export default function GalleryPage() {
                   </button>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                   {generatedImages.map((img, idx) => (
                     <div key={idx} className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-xs space-y-2 p-3">
                       <div className="aspect-square bg-slate-100 rounded-lg overflow-hidden relative border border-slate-200">

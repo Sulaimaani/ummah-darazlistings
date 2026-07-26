@@ -149,6 +149,33 @@ export async function POST(req: Request) {
       sourceKeys.push(uploadedUrl);
     }
 
+    // Parse per-slide image overrides
+    const SINGLE_IMAGE_SLIDE_KEYS = ["hero", "callouts", "dimensions", "versatility", "benefits", "package", "trust"];
+    const slideBuffers: Record<string, Buffer> = {};
+
+    for (const slideKey of SINGLE_IMAGE_SLIDE_KEYS) {
+      // Check for a custom uploaded file for this slide
+      const customFile = formData.get(`slideImage_${slideKey}`) as File | null;
+      if (customFile && customFile.size > 0) {
+        const customBuf = Buffer.from(await customFile.arrayBuffer());
+        slideBuffers[slideKey] = customBuf;
+
+        // Upload the custom slide image to Spaces too
+        const customUrl = await uploadImageBuffer(customBuf, `slide_${slideKey}_${customFile.name}`, customFile.type);
+        console.log(`[Generate Route] Uploaded custom slide image for ${slideKey}: ${customUrl}`);
+        continue;
+      }
+
+      // Check for a pool index override
+      const poolIndexStr = formData.get(`slideImagePool_${slideKey}`) as string | null;
+      if (poolIndexStr !== null && poolIndexStr !== "") {
+        const poolIndex = parseInt(poolIndexStr, 10);
+        if (!isNaN(poolIndex) && poolIndex >= 0 && poolIndex < sourceBuffers.length) {
+          slideBuffers[slideKey] = sourceBuffers[poolIndex];
+        }
+      }
+    }
+
     // Generate 8 composited gallery slides using sharp engine
     const slides = await generateGallerySlides(sourceBuffers, {
       productName,
@@ -175,6 +202,7 @@ export async function POST(req: Request) {
       featureCallouts,
       logoBuffer,
       logoPosition,
+      slideBuffers: Object.keys(slideBuffers).length > 0 ? slideBuffers : undefined,
     });
 
     // Upload generated slides to storage
