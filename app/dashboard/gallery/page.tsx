@@ -54,9 +54,9 @@ export default function GalleryPage() {
 
   // Slide 1: Hero Attributes
   const [productName, setProductName] = useState("");
-  const [sizeWeightLabel, setSizeWeightLabel] = useState("3LB / Standard Pack");
+  const [sizeWeightLabel, setSizeWeightLabel] = useState("");
   const [topLeftBadgeText, setTopLeftBadgeText] = useState("");
-  const [topRightBadgeText, setTopRightBadgeText] = useState("3LB / Standard Pack");
+  const [topRightBadgeText, setTopRightBadgeText] = useState("");
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [logoPosition, setLogoPosition] = useState<
@@ -64,22 +64,17 @@ export default function GalleryPage() {
   >("None");
 
   // Slide 2: Feature Callouts Attributes
-  const [featureCalloutsTitle, setFeatureCalloutsTitle] = useState("Key Product Features");
-  const [callouts, setCallouts] = useState<string[]>([
-    "Ergonomic Comfort Fit",
-    "High-Performance Build",
-    "Durable Finish",
-    "Universal Compatibility",
-  ]);
+  const [featureCalloutsTitle, setFeatureCalloutsTitle] = useState("");
+  const [callouts, setCallouts] = useState<string[]>([""]);
 
   // Slide 3: Product Dimensions Attributes
-  const [dimensionsTitle, setDimensionsTitle] = useState("Product Dimensions & Size");
-  const [heightText, setHeightText] = useState('6.3"');
-  const [widthText, setWidthText] = useState('2.7"');
-  const [depthText, setDepthText] = useState('');
+  const [dimensionsTitle, setDimensionsTitle] = useState("");
+  const [heightText, setHeightText] = useState("");
+  const [widthText, setWidthText] = useState("");
+  const [depthText, setDepthText] = useState("");
 
   // Slide 4: Multi-Angle Showcase Attributes
-  const [multiAngleTitle, setMultiAngleTitle] = useState("Multi-Angle Showcase");
+  const [multiAngleTitle, setMultiAngleTitle] = useState("");
 
   // Slide 5: Versatility Banner Attributes
   const [versatilityPill, setVersatilityPill] = useState("");
@@ -88,19 +83,18 @@ export default function GalleryPage() {
   const [versatilityBullets, setVersatilityBullets] = useState<string[]>(["", "", ""]);
 
   // Slide 6: Product Benefits Attributes
-  const [benefitsTitle, setBenefitsTitle] = useState("WHY CHOOSE THIS PRODUCT?");
+  const [benefitsTitle, setBenefitsTitle] = useState("");
   const [benefitsList, setBenefitsList] = useState<BenefitItem[]>([
-    { title: "", description: "" },
     { title: "", description: "" },
   ]);
 
   // Slide 7: Package Contents Attributes
-  const [packageTitle, setPackageTitle] = useState("WHAT IS IN THE PACKAGE?");
-  const [packageListTitle, setPackageListTitle] = useState("Package Contents List:");
+  const [packageTitle, setPackageTitle] = useState("");
+  const [packageListTitle, setPackageListTitle] = useState("");
   const [packageContents, setPackageContents] = useState<string[]>([""]);
 
   // Slide 8: Seller Trust Closing Attributes
-  const [closingTitle, setClosingTitle] = useState("PREMIUM QUALITY GUARANTEED");
+  const [closingTitle, setClosingTitle] = useState("");
 
   const [loading, setLoading] = useState(false);
   const [generatedImages, setGeneratedImages] = useState<GeneratedImage[]>([]);
@@ -332,30 +326,30 @@ export default function GalleryPage() {
         formData.append("photos", file);
       });
 
-      formData.append("productName", productName || "Premium Product");
-      formData.append("sizeWeightLabel", topRightBadgeText || sizeWeightLabel || "Standard Pack");
+      formData.append("productName", productName);
+      formData.append("sizeWeightLabel", topRightBadgeText || sizeWeightLabel);
       formData.append("topLeftBadgeText", topLeftBadgeText);
-      formData.append("topRightBadgeText", topRightBadgeText);
-      formData.append("featureCalloutsTitle", featureCalloutsTitle || "Key Product Features");
+      formData.append("topRightBadgeText", topRightBadgeText || sizeWeightLabel);
+      formData.append("featureCalloutsTitle", featureCalloutsTitle);
       formData.append("heightText", heightText);
       formData.append("widthText", widthText);
       formData.append("depthText", depthText);
-      formData.append("dimensionsTitle", dimensionsTitle || "Product Dimensions & Size");
-      formData.append("multiAngleTitle", multiAngleTitle || "Multi-Angle Showcase");
+      formData.append("dimensionsTitle", dimensionsTitle);
+      formData.append("multiAngleTitle", multiAngleTitle);
 
       formData.append("versatilityPill", versatilityPill);
       formData.append("versatilityTitle", versatilityTitle);
       formData.append("versatilitySubheadline", versatilitySubheadline);
       formData.append("versatilityBullets", JSON.stringify(versatilityBullets.filter(b => b.trim())));
 
-      formData.append("benefitsTitle", benefitsTitle || "WHY CHOOSE THIS PRODUCT?");
+      formData.append("benefitsTitle", benefitsTitle);
       formData.append("benefitsList", JSON.stringify(benefitsList.filter(b => b.title.trim())));
 
-      formData.append("packageTitle", packageTitle || "WHAT IS IN THE PACKAGE?");
-      formData.append("packageListTitle", packageListTitle || "Package Contents List:");
+      formData.append("packageTitle", packageTitle);
+      formData.append("packageListTitle", packageListTitle);
       formData.append("packageContents", JSON.stringify(packageContents.filter(p => p.trim())));
 
-      formData.append("closingTitle", closingTitle || "PREMIUM QUALITY GUARANTEED");
+      formData.append("closingTitle", closingTitle);
       formData.append("logoPosition", logoPosition);
       if (logoFile) {
         formData.append("logo", logoFile);

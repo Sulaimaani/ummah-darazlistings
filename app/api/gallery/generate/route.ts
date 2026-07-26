@@ -56,17 +56,17 @@ export async function POST(req: Request) {
       }
     }
 
-    const productName = (formData.get("productName") as string) || "Premium Daraz Item";
-    const sizeWeightLabel = (formData.get("sizeWeightLabel") as string) || "Standard Pack";
+    const productName = (formData.get("productName") as string) || "";
+    const sizeWeightLabel = (formData.get("sizeWeightLabel") as string) || "";
     const topLeftBadgeText = (formData.get("topLeftBadgeText") as string) || "";
     const topRightBadgeText = (formData.get("topRightBadgeText") as string) || sizeWeightLabel;
-    const featureCalloutsTitle = (formData.get("featureCalloutsTitle") as string) || "Key Product Features";
+    const featureCalloutsTitle = (formData.get("featureCalloutsTitle") as string) || "";
     const dimensionsText = (formData.get("dimensionsText") as string) || "";
     const heightText = (formData.get("heightText") as string) || "";
     const widthText = (formData.get("widthText") as string) || "";
     const depthText = (formData.get("depthText") as string) || "";
-    const dimensionsTitle = (formData.get("dimensionsTitle") as string) || "Product Dimensions & Size";
-    const multiAngleTitle = (formData.get("multiAngleTitle") as string) || "Multi-Angle Showcase";
+    const dimensionsTitle = (formData.get("dimensionsTitle") as string) || "";
+    const multiAngleTitle = (formData.get("multiAngleTitle") as string) || "";
 
     const versatilityTitle = (formData.get("versatilityTitle") as string) || "";
     const versatilityPill = (formData.get("versatilityPill") as string) || "";

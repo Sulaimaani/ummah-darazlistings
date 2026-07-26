@@ -236,18 +236,17 @@ export async function generateGallerySlides(
     const titleFit = fitTextToBox({
       text: productName,
       maxBoxWidth: CANVAS_SIZE - 80,
-      maxLines: 1,
+      maxLines: 2,
       baseFontSize: 34,
       minFontSize: 22,
       fill: "#FFFFFF",
       textAnchor: "middle",
       x: CANVAS_SIZE / 2,
-      y: 1120,
+      y: 1110,
     });
     footerBannerSvg = `
       <rect x="0" y="1050" width="${CANVAS_SIZE}" height="150" fill="#1E293B"/>
       ${titleFit.svg}
-      <text x="${CANVAS_SIZE / 2}" y="1160" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="16" font-weight="bold" fill="#F57224" text-anchor="middle">PREMIUM QUALITY • ORIGINAL PRODUCT</text>
     `;
   }
 
@@ -320,7 +319,7 @@ export async function generateGallerySlides(
   // =========================================================================
   const userCallouts = (attrs.featureCallouts || []).filter((c) => c.trim().length > 0);
   const calloutPhoto = await prepareMainPhoto(getSlideBuffer("callouts"), 360, 360);
-  const calloutTitle = attrs.featureCalloutsTitle || (userCallouts.length > 0 ? "KEY PRODUCT FEATURES" : "");
+  const calloutTitle = (attrs.featureCalloutsTitle || "").trim();
 
   const calloutBoxParts: string[] = [];
   const calloutLineParts: string[] = [];
@@ -457,7 +456,7 @@ export async function generateGallerySlides(
   // =========================================================================
   const dimPhoto = await prepareMainPhoto(getSlideBuffer("dimensions"), 700, 700);
   const { height: heightVal, width: widthVal, depth: depthVal } = parseDimensions(attrs);
-  const dimTitle = attrs.dimensionsTitle || (heightVal || widthVal ? "PRODUCT DIMENSIONS & SIZE" : "");
+  const dimTitle = (attrs.dimensionsTitle || "").trim();
 
   let heightSvg = "";
   if (heightVal) {
@@ -549,19 +548,24 @@ export async function generateGallerySlides(
   // SLIDE 4: Multi-Angle Showcase (1-4 Real Photos, NO Fake Flipped Angles)
   // =========================================================================
   const photoCount = sourceBuffers.length;
-  const gridTitle = attrs.multiAngleTitle || "MULTI-ANGLE SHOWCASE";
+  const gridTitle = (attrs.multiAngleTitle || "").trim();
 
-  const gridTitleFit = fitTextToBox({
-    text: gridTitle.toUpperCase(),
-    maxBoxWidth: CANVAS_SIZE - 80,
-    maxLines: 1,
-    baseFontSize: 34,
-    minFontSize: 20,
-    fill: "#FFFFFF",
-    textAnchor: "middle",
-    x: CANVAS_SIZE / 2,
-    y: 56,
-  });
+  const gridTitleFit = gridTitle
+    ? fitTextToBox({
+        text: gridTitle.toUpperCase(),
+        maxBoxWidth: CANVAS_SIZE - 80,
+        maxLines: 1,
+        baseFontSize: 34,
+        minFontSize: 20,
+        fill: "#FFFFFF",
+        textAnchor: "middle",
+        x: CANVAS_SIZE / 2,
+        y: 56,
+      })
+    : null;
+  const gridHeaderSvg = gridTitleFit
+    ? `<rect x="0" y="0" width="${CANVAS_SIZE}" height="90" fill="#F57224"/>${gridTitleFit.svg}`
+    : "";
 
   const gridComposites: sharp.OverlayOptions[] = [];
 
@@ -573,8 +577,7 @@ export async function generateGallerySlides(
     gridSvg = `
       <svg width="${CANVAS_SIZE}" height="${CANVAS_SIZE}" xmlns="http://www.w3.org/2000/svg">
         <rect width="${CANVAS_SIZE}" height="${CANVAS_SIZE}" fill="#F8FAFC"/>
-        <rect x="0" y="0" width="${CANVAS_SIZE}" height="90" fill="#F57224"/>
-        ${gridTitleFit.svg}
+        ${gridHeaderSvg}
         <rect x="180" y="160" width="840" height="840" rx="20" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="3"/>
       </svg>
     `;
@@ -587,8 +590,7 @@ export async function generateGallerySlides(
     gridSvg = `
       <svg width="${CANVAS_SIZE}" height="${CANVAS_SIZE}" xmlns="http://www.w3.org/2000/svg">
         <rect width="${CANVAS_SIZE}" height="${CANVAS_SIZE}" fill="#F8FAFC"/>
-        <rect x="0" y="0" width="${CANVAS_SIZE}" height="90" fill="#F57224"/>
-        ${gridTitleFit.svg}
+        ${gridHeaderSvg}
         <rect x="60" y="150" width="520" height="870" rx="16" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="2"/>
         <rect x="620" y="150" width="520" height="870" rx="16" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="2"/>
       </svg>
@@ -604,8 +606,7 @@ export async function generateGallerySlides(
     gridSvg = `
       <svg width="${CANVAS_SIZE}" height="${CANVAS_SIZE}" xmlns="http://www.w3.org/2000/svg">
         <rect width="${CANVAS_SIZE}" height="${CANVAS_SIZE}" fill="#F8FAFC"/>
-        <rect x="0" y="0" width="${CANVAS_SIZE}" height="90" fill="#F57224"/>
-        ${gridTitleFit.svg}
+        ${gridHeaderSvg}
         <rect x="60" y="140" width="520" height="870" rx="16" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="2"/>
         <rect x="620" y="140" width="520" height="420" rx="16" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="2"/>
         <rect x="620" y="590" width="520" height="420" rx="16" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="2"/>
@@ -624,8 +625,7 @@ export async function generateGallerySlides(
     gridSvg = `
       <svg width="${CANVAS_SIZE}" height="${CANVAS_SIZE}" xmlns="http://www.w3.org/2000/svg">
         <rect width="${CANVAS_SIZE}" height="${CANVAS_SIZE}" fill="#F8FAFC"/>
-        <rect x="0" y="0" width="${CANVAS_SIZE}" height="90" fill="#F57224"/>
-        ${gridTitleFit.svg}
+        ${gridHeaderSvg}
         <rect x="60" y="130" width="510" height="480" rx="16" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="2"/>
         <rect x="630" y="130" width="510" height="480" rx="16" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="2"/>
         <rect x="60" y="650" width="510" height="480" rx="16" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="2"/>
@@ -750,7 +750,7 @@ export async function generateGallerySlides(
   // SLIDE 6: Product Benefits (Auto-Sizing Cards, Dynamic User Input)
   // =========================================================================
   const benefitPhoto = await prepareMainPhoto(getSlideBuffer("benefits"), 540, 540);
-  const benefitTitle = attrs.benefitsTitle || (attrs.benefitsList && attrs.benefitsList.length > 0 ? "WHY CHOOSE THIS PRODUCT?" : "");
+  const benefitTitle = (attrs.benefitsTitle || "").trim();
 
   // Normalize benefit items
   const userBenefits: BenefitItem[] = (attrs.benefitsList || [])
@@ -857,8 +857,8 @@ export async function generateGallerySlides(
   // SLIDE 7: Package Showcase / What's in the Box (Photo Above Banner)
   // =========================================================================
   const pkgPhoto = await prepareMainPhoto(getSlideBuffer("package"), 700, 650);
-  const pkgTitle = attrs.packageTitle || (attrs.packageContents && attrs.packageContents.length > 0 ? "WHAT IS IN THE PACKAGE?" : "");
-  const pkgListTitle = attrs.packageListTitle || "Package Contents List:";
+  const pkgTitle = (attrs.packageTitle || "").trim();
+  const pkgListTitle = (attrs.packageListTitle || "").trim();
   const userPkgItems = (attrs.packageContents || []).filter((i) => i.trim().length > 0);
 
   let pkgHeaderSvg = "";
@@ -896,9 +896,13 @@ export async function generateGallerySlides(
       return fit.svg;
     });
 
+    const listTitleHeaderSvg = pkgListTitle
+      ? `<text x="100" y="838" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="22" font-weight="bold" fill="#F57224">${escapeXml(pkgListTitle)}</text>`
+      : "";
+
     pkgBannerSvg = `
       <rect x="60" y="790" width="1080" height="360" rx="20" fill="#1E293B"/>
-      <text x="100" y="838" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="22" font-weight="bold" fill="#F57224">${escapeXml(pkgListTitle)}</text>
+      ${listTitleHeaderSvg}
       ${itemSvgParts.join("\n")}
     `;
   }
@@ -932,54 +936,61 @@ export async function generateGallerySlides(
   // SLIDE 8: Branded Closing / Seller Protection (Customizable Badges)
   // =========================================================================
   const closingPhoto = await prepareMainPhoto(getSlideBuffer("trust"), 700, 700);
-  const closingTitle = attrs.closingTitle || productName || "PREMIUM QUALITY GUARANTEED";
+  const closingTitle = (attrs.closingTitle || "").trim();
 
-  const closingTitleFit = fitTextToBox({
-    text: closingTitle.toUpperCase(),
-    maxBoxWidth: CANVAS_SIZE - 80,
-    maxLines: 1,
-    baseFontSize: 34,
-    minFontSize: 20,
-    fill: "#FFFFFF",
-    textAnchor: "middle",
-    x: CANVAS_SIZE / 2,
-    y: 70,
-  });
-
-  const closingBadges = attrs.closingBadges || [
-    { title: "100% Quality Tested", subtitle: "Inspected before dispatch" },
-    { title: "Fast Shipping", subtitle: "Express Daraz fulfillment" },
-    { title: "Buyer Protection", subtitle: "Hassle-free replacement" },
-  ];
-
-  const closingSvg = `
-    <svg width="${CANVAS_SIZE}" height="${CANVAS_SIZE}" xmlns="http://www.w3.org/2000/svg">
-      <rect width="${CANVAS_SIZE}" height="${CANVAS_SIZE}" fill="#F8FAFC"/>
+  let closingTitleSvg = "";
+  if (closingTitle) {
+    const closingTitleFit = fitTextToBox({
+      text: closingTitle.toUpperCase(),
+      maxBoxWidth: CANVAS_SIZE - 80,
+      maxLines: 1,
+      baseFontSize: 34,
+      minFontSize: 20,
+      fill: "#FFFFFF",
+      textAnchor: "middle",
+      x: CANVAS_SIZE / 2,
+      y: 70,
+    });
+    closingTitleSvg = `
       <rect x="0" y="0" width="${CANVAS_SIZE}" height="120" fill="#1E293B"/>
       ${closingTitleFit.svg}
+    `;
+  }
 
+  let closingBadgesSvg = "";
+  if (attrs.closingBadges && attrs.closingBadges.length > 0) {
+    const closingBadges = attrs.closingBadges;
+    closingBadgesSvg = `
       <g transform="translate(60, 920)">
         <!-- Badge 1 -->
         <rect x="0" y="0" width="340" height="180" rx="16" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="2"/>
         <circle cx="170" cy="55" r="30" fill="#F57224"/>
         <text x="170" y="65" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="28" fill="#FFFFFF" text-anchor="middle">★</text>
-        <text x="170" y="125" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="19" font-weight="bold" fill="#1E293B" text-anchor="middle">${escapeXml(closingBadges[0]?.title || "Quality Tested")}</text>
-        <text x="170" y="150" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13" fill="#64748B" text-anchor="middle">${escapeXml(closingBadges[0]?.subtitle || "100% Guaranteed")}</text>
+        <text x="170" y="125" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="19" font-weight="bold" fill="#1E293B" text-anchor="middle">${escapeXml(closingBadges[0]?.title || "")}</text>
+        <text x="170" y="150" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13" fill="#64748B" text-anchor="middle">${escapeXml(closingBadges[0]?.subtitle || "")}</text>
 
         <!-- Badge 2 -->
         <rect x="370" y="0" width="340" height="180" rx="16" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="2"/>
         <circle cx="540" cy="55" r="30" fill="#1E293B"/>
         <text x="540" y="65" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="28" fill="#FFFFFF" text-anchor="middle">⚡</text>
-        <text x="540" y="125" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="19" font-weight="bold" fill="#1E293B" text-anchor="middle">${escapeXml(closingBadges[1]?.title || "Fast Dispatch")}</text>
-        <text x="540" y="150" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13" fill="#64748B" text-anchor="middle">${escapeXml(closingBadges[1]?.subtitle || "Express Fulfillment")}</text>
+        <text x="540" y="125" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="19" font-weight="bold" fill="#1E293B" text-anchor="middle">${escapeXml(closingBadges[1]?.title || "")}</text>
+        <text x="540" y="150" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13" fill="#64748B" text-anchor="middle">${escapeXml(closingBadges[1]?.subtitle || "")}</text>
 
         <!-- Badge 3 -->
         <rect x="740" y="0" width="340" height="180" rx="16" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="2"/>
         <circle cx="910" cy="55" r="30" fill="#10B981"/>
         <text x="910" y="65" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="28" fill="#FFFFFF" text-anchor="middle">✓</text>
-        <text x="910" y="125" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="19" font-weight="bold" fill="#1E293B" text-anchor="middle">${escapeXml(closingBadges[2]?.title || "Buyer Protection")}</text>
-        <text x="910" y="150" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13" fill="#64748B" text-anchor="middle">${escapeXml(closingBadges[2]?.subtitle || "Safe Delivery")}</text>
+        <text x="910" y="125" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="19" font-weight="bold" fill="#1E293B" text-anchor="middle">${escapeXml(closingBadges[2]?.title || "")}</text>
+        <text x="910" y="150" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13" fill="#64748B" text-anchor="middle">${escapeXml(closingBadges[2]?.subtitle || "")}</text>
       </g>
+    `;
+  }
+
+  const closingSvg = `
+    <svg width="${CANVAS_SIZE}" height="${CANVAS_SIZE}" xmlns="http://www.w3.org/2000/svg">
+      <rect width="${CANVAS_SIZE}" height="${CANVAS_SIZE}" fill="#F8FAFC"/>
+      ${closingTitleSvg}
+      ${closingBadgesSvg}
     </svg>
   `;
 
