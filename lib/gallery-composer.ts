@@ -3,10 +3,15 @@ import sharp from "sharp";
 export interface GalleryInputAttributes {
   productName?: string;
   sizeWeightLabel?: string;
+  topLeftBadgeText?: string;
+  topRightBadgeText?: string;
+  featureCalloutsTitle?: string;
   dimensionsText?: string;
   featureCallouts?: string[]; // 3 to 5 bullet callouts
   benefitsList?: string[];
   packageContents?: string[];
+  logoBuffer?: Buffer;
+  logoPosition?: "Top-Left" | "Top-Right" | "Bottom-Left" | "Bottom-Right" | "None";
 }
 
 export async function generateGallerySlides(
@@ -16,17 +21,18 @@ export async function generateGallerySlides(
   const CANVAS_SIZE = 1200;
 
   const productName = attrs.productName || "Premium Product Edition";
-  const sizeWeight = attrs.sizeWeightLabel || "Official Edition";
   const dimensions = attrs.dimensionsText || "Standard Size";
+  const userCallouts = (attrs.featureCallouts || []).filter((c) => c.trim().length > 0);
   const callouts =
-    attrs.featureCallouts && attrs.featureCallouts.length >= 2
-      ? attrs.featureCallouts
+    userCallouts.length >= 1
+      ? userCallouts
       : [
           "Ergonomic Premium Build",
           "High-Efficiency Performance",
           "Durable Weatherproof Finish",
           "Universal Compatibility",
         ];
+
   const benefits =
     attrs.benefitsList && attrs.benefitsList.length >= 2
       ? attrs.benefitsList
@@ -58,9 +64,42 @@ export async function generateGallerySlides(
   const results: { buffer: Buffer; name: string }[] = [];
 
   // =========================================================================
-  // SLIDE 1: Hero (White background, size badge, product name footer)
+  // SLIDE 1: Hero (White background, customizable badges, logo overlay)
   // =========================================================================
   const heroPhoto = await prepareMainPhoto(primaryBuf, 850, 850);
+
+  const topLeftBadge = (attrs.topLeftBadgeText || "").trim();
+  const topRightBadge = (attrs.topRightBadgeText || attrs.sizeWeightLabel || "").trim();
+  const logoPosition = attrs.logoPosition || "None";
+  const hasLogo = Boolean(attrs.logoBuffer && attrs.logoBuffer.length > 0 && logoPosition !== "None");
+
+  // Suppress text badge if custom logo shares that exact corner
+  const renderTopLeftBadge = Boolean(topLeftBadge && (!hasLogo || logoPosition !== "Top-Left"));
+  const renderTopRightBadge = Boolean(topRightBadge && (!hasLogo || logoPosition !== "Top-Right"));
+
+  let topLeftSvg = "";
+  if (renderTopLeftBadge) {
+    const badgeW = Math.max(160, Math.min(380, topLeftBadge.length * 14 + 40));
+    topLeftSvg = `
+      <g transform="translate(60, 70)">
+        <rect width="${badgeW}" height="54" rx="12" fill="#1E293B"/>
+        <text x="${badgeW / 2}" y="34" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="18" font-weight="bold" fill="#FFFFFF" text-anchor="middle">${escapeXml(topLeftBadge)}</text>
+      </g>
+    `;
+  }
+
+  let topRightSvg = "";
+  if (renderTopRightBadge) {
+    const badgeW = Math.max(160, Math.min(380, topRightBadge.length * 14 + 40));
+    const badgeX = CANVAS_SIZE - 60 - badgeW;
+    topRightSvg = `
+      <g transform="translate(${badgeX}, 70)">
+        <rect width="${badgeW}" height="54" rx="27" fill="#F57224"/>
+        <text x="${badgeW / 2}" y="34" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="18" font-weight="bold" fill="#FFFFFF" text-anchor="middle">${escapeXml(topRightBadge)}</text>
+      </g>
+    `;
+  }
+
   const heroSvg = `
     <svg width="${CANVAS_SIZE}" height="${CANVAS_SIZE}" xmlns="http://www.w3.org/2000/svg">
       <defs>
@@ -73,24 +112,51 @@ export async function generateGallerySlides(
       <rect width="${CANVAS_SIZE}" height="${CANVAS_SIZE}" fill="url(#bgGrad)"/>
       <rect x="20" y="20" width="${CANVAS_SIZE - 40}" height="${CANVAS_SIZE - 40}" fill="none" stroke="#E2E8F0" stroke-width="3" rx="16"/>
 
-      <!-- Size / Weight Badge -->
-      <g transform="translate(900, 70)">
-        <rect width="220" height="60" rx="30" fill="#F57224"/>
-        <text x="110" y="38" font-family="sans-serif" font-size="22" font-weight="bold" fill="#FFFFFF" text-anchor="middle">${escapeXml(sizeWeight)}</text>
-      </g>
-
-      <!-- Top Brand Tag -->
-      <g transform="translate(60, 80)">
-        <rect width="200" height="40" rx="8" fill="#1E293B"/>
-        <text x="100" y="26" font-family="sans-serif" font-size="14" font-weight="bold" fill="#FFFFFF" text-anchor="middle">DARAZ VERIFIED</text>
-      </g>
+      ${topLeftSvg}
+      ${topRightSvg}
 
       <!-- Bottom Footer Banner -->
       <rect x="0" y="1050" width="${CANVAS_SIZE}" height="150" fill="#1E293B"/>
-      <text x="${CANVAS_SIZE / 2}" y="1120" font-family="sans-serif" font-size="34" font-weight="bold" fill="#FFFFFF" text-anchor="middle">${escapeXml(truncateText(productName, 40))}</text>
-      <text x="${CANVAS_SIZE / 2}" y="1160" font-family="sans-serif" font-size="18" fill="#F57224" text-anchor="middle">PREMIUM QUALITY • ORIGINAL PRODUCT</text>
+      <text x="${CANVAS_SIZE / 2}" y="1120" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="34" font-weight="bold" fill="#FFFFFF" text-anchor="middle">${escapeXml(truncateText(productName, 40))}</text>
+      <text x="${CANVAS_SIZE / 2}" y="1160" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="18" fill="#F57224" text-anchor="middle">PREMIUM QUALITY • ORIGINAL PRODUCT</text>
     </svg>
   `;
+
+  // Prepare composites for Slide 1
+  const slide1Composites: sharp.OverlayOptions[] = [
+    { input: Buffer.from(heroSvg), top: 0, left: 0 },
+    { input: heroPhoto, top: 160, left: (CANVAS_SIZE - 850) / 2 },
+  ];
+
+  // Optional Logo Overlay
+  if (hasLogo && attrs.logoBuffer) {
+    try {
+      const resizedLogo = await sharp(attrs.logoBuffer)
+        .resize(180, 100, {
+          fit: "contain",
+          background: { r: 0, g: 0, b: 0, alpha: 0 },
+        })
+        .toBuffer();
+
+      let logoLeft = 60;
+      let logoTop = 50;
+      if (logoPosition === "Top-Right") {
+        logoLeft = CANVAS_SIZE - 240;
+        logoTop = 50;
+      } else if (logoPosition === "Bottom-Left") {
+        logoLeft = 60;
+        logoTop = 930;
+      } else if (logoPosition === "Bottom-Right") {
+        logoLeft = CANVAS_SIZE - 240;
+        logoTop = 930;
+      }
+
+      slide1Composites.push({ input: resizedLogo, top: logoTop, left: logoLeft });
+      console.log(`[Composer] Composited logo at position: ${logoPosition}`);
+    } catch (logoErr) {
+      console.error("[Composer Error] Failed to composite logo:", logoErr);
+    }
+  }
 
   const slide1 = await sharp({
     create: {
@@ -100,10 +166,7 @@ export async function generateGallerySlides(
       background: { r: 255, g: 255, b: 255, alpha: 1 },
     },
   })
-    .composite([
-      { input: Buffer.from(heroSvg), top: 0, left: 0 },
-      { input: heroPhoto, top: 160, left: (CANVAS_SIZE - 850) / 2 },
-    ])
+    .composite(slide1Composites)
     .jpeg({ quality: 92 })
     .toBuffer();
 
@@ -115,13 +178,57 @@ export async function generateGallerySlides(
   results.push({ buffer: slide1, name: "1_Hero_Main_Photo.jpg" });
 
   // =========================================================================
-  // SLIDE 2: Feature Callouts
+  // SLIDE 2: Feature Callouts (Auto-Sizing, Word-Wrapping, Reserved Central Photo Zone)
   // =========================================================================
-  const calloutPhoto = await prepareMainPhoto(primaryBuf, 620, 620);
-  const callout1 = callouts[0] || "Ergonomic Build";
-  const callout2 = callouts[1] || "High Performance";
-  const callout3 = callouts[2] || "Heavy Duty Finish";
-  const callout4 = callouts[3] || "Universal Precision";
+  // Reserved Central Photo Zone: 460x460 centered at left: 370, top: 350
+  const calloutPhoto = await prepareMainPhoto(primaryBuf, 460, 460);
+  const calloutTitle = attrs.featureCalloutsTitle || "KEY PRODUCT FEATURES";
+
+  // Build Auto-Sizing Callout Boxes
+  const calloutBoxSvgParts: string[] = [];
+  const connectorLineParts: string[] = [];
+
+  const count = Math.min(5, Math.max(1, callouts.length));
+
+  // Determine Y centers for 1..5 callout items
+  let yPositions: { y: number; isRight: boolean }[] = [];
+  if (count === 1) {
+    yPositions = [{ y: 260, isRight: false }];
+  } else if (count === 2) {
+    yPositions = [
+      { y: 280, isRight: false },
+      { y: 280, isRight: true },
+    ];
+  } else if (count === 3) {
+    yPositions = [
+      { y: 260, isRight: false },
+      { y: 550, isRight: true },
+      { y: 840, isRight: false },
+    ];
+  } else if (count === 4) {
+    yPositions = [
+      { y: 260, isRight: false },
+      { y: 260, isRight: true },
+      { y: 840, isRight: false },
+      { y: 840, isRight: true },
+    ];
+  } else {
+    // 5 items
+    yPositions = [
+      { y: 230, isRight: false },
+      { y: 230, isRight: true },
+      { y: 550, isRight: false },
+      { y: 550, isRight: true },
+      { y: 850, isRight: false },
+    ];
+  }
+
+  callouts.slice(0, count).forEach((text, idx) => {
+    const pos = yPositions[idx] || { y: 260 + idx * 180, isRight: idx % 2 === 1 };
+    const { boxSvg, lineSvg } = createAutoSizedCallout(text, pos.isRight, pos.y);
+    calloutBoxSvgParts.push(boxSvg);
+    connectorLineParts.push(lineSvg);
+  });
 
   const calloutSvg = `
     <svg width="${CANVAS_SIZE}" height="${CANVAS_SIZE}" xmlns="http://www.w3.org/2000/svg">
@@ -129,40 +236,11 @@ export async function generateGallerySlides(
       
       <!-- Top Title -->
       <rect x="0" y="0" width="${CANVAS_SIZE}" height="100" fill="#F57224"/>
-      <text x="${CANVAS_SIZE / 2}" y="62" font-family="sans-serif" font-size="36" font-weight="bold" fill="#FFFFFF" text-anchor="middle">KEY PRODUCT FEATURES</text>
+      <text x="${CANVAS_SIZE / 2}" y="62" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="34" font-weight="bold" fill="#FFFFFF" text-anchor="middle">${escapeXml(calloutTitle.toUpperCase())}</text>
 
-      <!-- Connectors & Callout Boxes -->
-      <!-- Callout 1 (Top Left) -->
-      <g transform="translate(60, 220)">
-        <rect width="320" height="90" rx="12" fill="#FFFFFF" stroke="#F57224" stroke-width="3"/>
-        <circle cx="25" cy="45" r="12" fill="#F57224"/>
-        <text x="50" y="52" font-family="sans-serif" font-size="18" font-weight="bold" fill="#1E293B">${escapeXml(truncateText(callout1, 24))}</text>
-      </g>
-      <line x1="380" y1="265" x2="480" y2="380" stroke="#F57224" stroke-width="3" stroke-dasharray="6,6"/>
-
-      <!-- Callout 2 (Top Right) -->
-      <g transform="translate(820, 220)">
-        <rect width="320" height="90" rx="12" fill="#FFFFFF" stroke="#F57224" stroke-width="3"/>
-        <circle cx="25" cy="45" r="12" fill="#F57224"/>
-        <text x="50" y="52" font-family="sans-serif" font-size="18" font-weight="bold" fill="#1E293B">${escapeXml(truncateText(callout2, 24))}</text>
-      </g>
-      <line x1="820" y1="265" x2="720" y2="380" stroke="#F57224" stroke-width="3" stroke-dasharray="6,6"/>
-
-      <!-- Callout 3 (Bottom Left) -->
-      <g transform="translate(60, 800)">
-        <rect width="320" height="90" rx="12" fill="#FFFFFF" stroke="#F57224" stroke-width="3"/>
-        <circle cx="25" cy="45" r="12" fill="#F57224"/>
-        <text x="50" y="52" font-family="sans-serif" font-size="18" font-weight="bold" fill="#1E293B">${escapeXml(truncateText(callout3, 24))}</text>
-      </g>
-      <line x1="380" y1="845" x2="480" y2="720" stroke="#F57224" stroke-width="3" stroke-dasharray="6,6"/>
-
-      <!-- Callout 4 (Bottom Right) -->
-      <g transform="translate(820, 800)">
-        <rect width="320" height="90" rx="12" fill="#FFFFFF" stroke="#F57224" stroke-width="3"/>
-        <circle cx="25" cy="45" r="12" fill="#F57224"/>
-        <text x="50" y="52" font-family="sans-serif" font-size="18" font-weight="bold" fill="#1E293B">${escapeXml(truncateText(callout4, 24))}</text>
-      </g>
-      <line x1="820" y1="845" x2="720" y2="720" stroke="#F57224" stroke-width="3" stroke-dasharray="6,6"/>
+      <!-- Connectors & Auto-Sized Callout Boxes -->
+      ${connectorLineParts.join("\n")}
+      ${calloutBoxSvgParts.join("\n")}
     </svg>
   `;
 
@@ -176,7 +254,7 @@ export async function generateGallerySlides(
   })
     .composite([
       { input: Buffer.from(calloutSvg), top: 0, left: 0 },
-      { input: calloutPhoto, top: 280, left: 290 },
+      { input: calloutPhoto, top: 350, left: 370 }, // Reserved Central Photo Zone (460x460)
     ])
     .jpeg({ quality: 92 })
     .toBuffer();
@@ -506,6 +584,71 @@ export async function generateGallerySlides(
   results.push({ buffer: slide8, name: "8_Branded_Seller_Trust.jpg" });
 
   return results;
+}
+
+function createAutoSizedCallout(
+  text: string,
+  isRightSide: boolean,
+  yCenter: number
+): { boxSvg: string; lineSvg: string } {
+  const CANVAS_SIZE = 1200;
+  const maxLineLength = 22;
+
+  let lines: string[] = [];
+  if (text.length > maxLineLength) {
+    const words = text.trim().split(/\s+/);
+    let line1 = "";
+    let line2 = "";
+    for (const w of words) {
+      if ((line1 + " " + w).trim().length <= maxLineLength) {
+        line1 = (line1 + " " + w).trim();
+      } else {
+        line2 = (line2 + " " + w).trim();
+      }
+    }
+    lines = line2 ? [line1, line2] : [text];
+  } else {
+    lines = [text];
+  }
+
+  const maxLen = Math.max(...lines.map((l) => l.length));
+  const boxWidth = Math.min(390, Math.max(240, maxLen * 13 + 70));
+  const boxHeight = lines.length > 1 ? 105 : 75;
+
+  let posX = 50;
+  let lineX1 = posX + boxWidth;
+  let lineX2 = 380;
+
+  if (isRightSide) {
+    posX = CANVAS_SIZE - 50 - boxWidth;
+    lineX1 = posX;
+    lineX2 = 820;
+  }
+
+  const circleY = boxHeight / 2;
+
+  const textLinesSvg = lines
+    .map((line, i) => {
+      const lineY = lines.length > 1 ? (i === 0 ? 36 : 70) : 46;
+      return `<text x="50" y="${lineY}" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="17" font-weight="bold" fill="#1E293B">${escapeXml(line)}</text>`;
+    })
+    .join("");
+
+  const boxSvg = `
+    <g transform="translate(${posX}, ${yCenter - boxHeight / 2})">
+      <rect width="${boxWidth}" height="${boxHeight}" rx="14" fill="#FFFFFF" stroke="#F57224" stroke-width="3"/>
+      <circle cx="24" cy="${circleY}" r="12" fill="#F57224"/>
+      <text x="24" y="${circleY + 5}" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="14" font-weight="bold" fill="#FFFFFF" text-anchor="middle">✓</text>
+      ${textLinesSvg}
+    </g>
+  `;
+
+  const targetPhotoY = Math.min(780, Math.max(380, yCenter));
+  const lineSvg = `
+    <line x1="${lineX1}" y1="${yCenter}" x2="${lineX2}" y2="${targetPhotoY}" stroke="#F57224" stroke-width="3" stroke-dasharray="6,6"/>
+  `;
+
+  return { boxSvg, lineSvg };
 }
 
 function escapeXml(unsafe: string): string {

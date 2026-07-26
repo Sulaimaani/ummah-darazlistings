@@ -58,7 +58,36 @@ export async function POST(req: Request) {
 
     const productName = (formData.get("productName") as string) || "Premium Daraz Item";
     const sizeWeightLabel = (formData.get("sizeWeightLabel") as string) || "Standard Pack";
+    const topLeftBadgeText = (formData.get("topLeftBadgeText") as string) || "";
+    const topRightBadgeText = (formData.get("topRightBadgeText") as string) || sizeWeightLabel;
+    const featureCalloutsTitle = (formData.get("featureCalloutsTitle") as string) || "Key Product Features";
     const dimensionsText = (formData.get("dimensionsText") as string) || "Standard Size";
+    const logoPosition = (formData.get("logoPosition") as any) || "None";
+
+    // Validate and process optional Logo upload (max 2MB)
+    const logoFile = formData.get("logo") as File | null;
+    let logoBuffer: Buffer | undefined = undefined;
+    let logoImageKey: string | null = null;
+
+    if (logoFile && logoFile.size > 0) {
+      if (logoFile.size > 2 * 1024 * 1024) {
+        return NextResponse.json(
+          { error: `Logo file "${logoFile.name}" exceeds maximum size limit of 2MB.` },
+          { status: 400 }
+        );
+      }
+      if (!ALLOWED_TYPES.includes(logoFile.type.toLowerCase())) {
+        return NextResponse.json(
+          { error: `Logo file "${logoFile.name}" must be JPG, PNG, or WebP format.` },
+          { status: 400 }
+        );
+      }
+
+      const logoArrayBuf = await logoFile.arrayBuffer();
+      logoBuffer = Buffer.from(logoArrayBuf);
+      logoImageKey = await uploadImageBuffer(logoBuffer, `logo_${logoFile.name}`, logoFile.type);
+      console.log(`[Generate Route] Uploaded logo to storage: ${logoImageKey}`);
+    }
 
     let featureCallouts: string[] = [];
     try {
@@ -93,9 +122,14 @@ export async function POST(req: Request) {
     const slides = await generateGallerySlides(sourceBuffers, {
       productName,
       sizeWeightLabel,
+      topLeftBadgeText,
+      topRightBadgeText,
+      featureCalloutsTitle,
       dimensionsText,
       featureCallouts,
       benefitsList,
+      logoBuffer,
+      logoPosition,
     });
 
     // Upload generated slides to storage
@@ -129,6 +163,7 @@ export async function POST(req: Request) {
           productName,
           sourceImageKeys: sourceKeys,
           generatedImageKeys: generatedKeys,
+          logoImageKey: logoImageKey,
         });
       } catch (dbErr) {
         console.warn("DB gallery record save warning:", dbErr);

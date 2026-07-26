@@ -46,6 +46,7 @@ export const galleries = pgTable(
     sourceImageKeys: jsonb("source_image_keys").$type<string[]>().notNull(),
     generatedImageKeys: jsonb("generated_image_keys").$type<string[]>().notNull(),
     productName: text("product_name").notNull(),
+    logoImageKey: text("logo_image_key"),
     createdAt: timestamp("created_at", { withTimezone: true })
       .defaultNow()
       .notNull(),

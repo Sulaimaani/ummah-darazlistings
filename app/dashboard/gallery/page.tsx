@@ -29,6 +29,9 @@ export default function GalleryPage() {
   // Attributes
   const [productName, setProductName] = useState("");
   const [sizeWeightLabel, setSizeWeightLabel] = useState("3LB / Standard Pack");
+  const [topLeftBadgeText, setTopLeftBadgeText] = useState("");
+  const [topRightBadgeText, setTopRightBadgeText] = useState("3LB / Standard Pack");
+  const [featureCalloutsTitle, setFeatureCalloutsTitle] = useState("Key Product Features");
   const [dimensionsText, setDimensionsText] = useState('6.3" x 2.7"');
   const [callouts, setCallouts] = useState<string[]>([
     "Ergonomic Comfort Fit",
@@ -37,10 +40,42 @@ export default function GalleryPage() {
     "Universal Compatibility",
   ]);
 
+  // Logo Overlay state
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const [logoPosition, setLogoPosition] = useState<
+    "Top-Left" | "Top-Right" | "Bottom-Left" | "Bottom-Right" | "None"
+  >("None");
+
   const [loading, setLoading] = useState(false);
   const [generatedImages, setGeneratedImages] = useState<GeneratedImage[]>([]);
   const [savedGalleries, setSavedGalleries] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState<"generator" | "history">("generator");
+
+  // Logo file handler
+  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || !e.target.files[0]) return;
+    const file = e.target.files[0];
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error("Logo file size must be less than 2MB.");
+      return;
+    }
+    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type.toLowerCase())) {
+      toast.error("Logo must be PNG, JPG, or WebP image.");
+      return;
+    }
+    setLogoFile(file);
+    setLogoPreview(URL.createObjectURL(file));
+    if (logoPosition === "None") {
+      setLogoPosition("Top-Left");
+    }
+  };
+
+  const handleRemoveLogo = () => {
+    setLogoFile(null);
+    setLogoPreview(null);
+    setLogoPosition("None");
+  };
 
   // File selection handler
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -115,8 +150,15 @@ export default function GalleryPage() {
       });
 
       formData.append("productName", productName || "Premium Product");
-      formData.append("sizeWeightLabel", sizeWeightLabel || "Standard Pack");
+      formData.append("sizeWeightLabel", topRightBadgeText || sizeWeightLabel || "Standard Pack");
+      formData.append("topLeftBadgeText", topLeftBadgeText);
+      formData.append("topRightBadgeText", topRightBadgeText);
+      formData.append("featureCalloutsTitle", featureCalloutsTitle || "Key Product Features");
       formData.append("dimensionsText", dimensionsText || '6.3" x 2.7"');
+      formData.append("logoPosition", logoPosition);
+      if (logoFile) {
+        formData.append("logo", logoFile);
+      }
       formData.append("featureCallouts", JSON.stringify(callouts.filter((c) => c.trim().length > 0)));
 
       const res = await fetch("/api/gallery/generate", {
@@ -292,13 +334,94 @@ export default function GalleryPage() {
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="block text-xs font-semibold text-slate-700 mb-1">
-                      Size / Weight Badge
+                      Top-Left Badge Text
                     </label>
                     <input
                       type="text"
-                      value={sizeWeightLabel}
-                      onChange={(e) => setSizeWeightLabel(e.target.value)}
-                      placeholder="e.g. 3LB / Pack of 1"
+                      value={topLeftBadgeText}
+                      onChange={(e) => setTopLeftBadgeText(e.target.value)}
+                      placeholder="e.g. OFFICIAL BRAND (Empty = None)"
+                      className="input-daraz"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">
+                      Top-Right Badge Text
+                    </label>
+                    <input
+                      type="text"
+                      value={topRightBadgeText}
+                      onChange={(e) => {
+                        setTopRightBadgeText(e.target.value);
+                        setSizeWeightLabel(e.target.value);
+                      }}
+                      placeholder="e.g. 3LB / Standard Pack"
+                      className="input-daraz"
+                    />
+                  </div>
+                </div>
+
+                {/* Custom Logo Upload & Placement */}
+                <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
+                  <span className="text-xs font-bold text-slate-800 block">
+                    Custom Logo Overlay (Optional)
+                  </span>
+
+                  <div className="flex items-center gap-3">
+                    {logoPreview ? (
+                      <div className="relative w-14 h-14 bg-white rounded border overflow-hidden shrink-0">
+                        <img src={logoPreview} alt="Logo preview" className="w-full h-full object-contain" />
+                        <button
+                          onClick={handleRemoveLogo}
+                          className="absolute top-0.5 right-0.5 p-0.5 bg-red-600 text-white rounded-full"
+                          title="Remove logo"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </button>
+                      </div>
+                    ) : (
+                      <label className="px-3 py-2 border border-dashed border-slate-300 rounded-lg text-xs font-semibold text-slate-700 bg-white hover:bg-slate-100 cursor-pointer flex items-center gap-1.5 shrink-0">
+                        <Upload className="w-3.5 h-3.5 text-daraz-orange" />
+                        Upload Logo (PNG/JPG, max 2MB)
+                        <input
+                          type="file"
+                          accept="image/png,image/jpeg,image/webp"
+                          onChange={handleLogoChange}
+                          className="hidden"
+                        />
+                      </label>
+                    )}
+
+                    <div className="flex-1">
+                      <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                        Logo Position Corner
+                      </label>
+                      <select
+                        value={logoPosition}
+                        onChange={(e) => setLogoPosition(e.target.value as any)}
+                        className="input-daraz py-1 text-xs"
+                      >
+                        <option value="None">None (No Logo)</option>
+                        <option value="Top-Left">Top-Left Corner</option>
+                        <option value="Top-Right">Top-Right Corner</option>
+                        <option value="Bottom-Left">Bottom-Left Corner</option>
+                        <option value="Bottom-Right">Bottom-Right Corner</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">
+                      Feature Callouts Slide Title
+                    </label>
+                    <input
+                      type="text"
+                      value={featureCalloutsTitle}
+                      onChange={(e) => setFeatureCalloutsTitle(e.target.value)}
+                      placeholder="Key Product Features"
                       className="input-daraz"
                     />
                   </div>
