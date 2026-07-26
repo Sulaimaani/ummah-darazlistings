@@ -141,51 +141,27 @@ export default function GalleryPage() {
     }
   };
 
-  // Download single image
-  const downloadSingleImage = async (url: string, filename: string) => {
+  // Download single image via server-side proxy (bypasses browser CORS)
+  const downloadSingleImage = (url: string, filename: string) => {
     try {
-      const response = await fetch(url);
-      const blob = await response.blob();
-      const blobUrl = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = blobUrl;
-      link.download = filename;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(blobUrl);
-      toast.success(`Downloaded ${filename}`);
+      const proxyUrl = `/api/gallery/download?mode=single&url=${encodeURIComponent(url)}&filename=${encodeURIComponent(filename)}`;
+      window.open(proxyUrl, "_blank");
+      toast.success(`Downloading ${filename}...`);
     } catch (e) {
       toast.error("Could not download image.");
     }
   };
 
-  // Download all as ZIP
-  const downloadAllAsZip = async () => {
+  // Download all as ZIP via server-side proxy (bypasses browser CORS)
+  const downloadAllAsZip = () => {
     if (generatedImages.length === 0) return;
-    toast.info("Preparing ZIP archive of all gallery slides...");
+    toast.info("Preparing ZIP archive of all 8 gallery slides...");
 
     try {
-      const zip = new JSZip();
-      const folder = zip.folder("Daraz-Gallery-Slides");
-
-      for (let i = 0; i < generatedImages.length; i++) {
-        const item = generatedImages[i];
-        const response = await fetch(item.url);
-        const blob = await response.blob();
-        folder?.file(item.name || `slide_${i + 1}.jpg`, blob);
-      }
-
-      const zipBlob = await zip.generateAsync({ type: "blob" });
-      const blobUrl = URL.createObjectURL(zipBlob);
-      const link = document.createElement("a");
-      link.href = blobUrl;
-      link.download = `${(productName || "Daraz-Product").replace(/[^a-zA-Z0-9]/g, "_")}-Gallery.zip`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(blobUrl);
-      toast.success("ZIP archive downloaded!");
+      const proxyUrl = `/api/gallery/download?mode=zip&urls=${encodeURIComponent(
+        JSON.stringify(generatedImages)
+      )}&productName=${encodeURIComponent(productName || "Daraz-Product")}`;
+      window.open(proxyUrl, "_blank");
     } catch (err) {
       console.error("ZIP creation error:", err);
       toast.error("Failed to create ZIP file.");
