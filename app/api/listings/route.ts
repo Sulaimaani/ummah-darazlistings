@@ -12,7 +12,7 @@ export async function GET() {
 
     if (!userId) {
       return NextResponse.json(
-        { error: "Unauthorized access." },
+        { error: "Unauthorized access. Please sign in." },
         { status: 401 }
       );
     }
@@ -21,17 +21,27 @@ export async function GET() {
       return NextResponse.json({ success: true, listings: [] });
     }
 
-    const result = await db
-      .select()
-      .from(listings)
-      .where(eq(listings.userId, userId))
-      .orderBy(desc(listings.createdAt));
+    try {
+      const result = await db
+        .select()
+        .from(listings)
+        .where(eq(listings.userId, userId))
+        .orderBy(desc(listings.createdAt));
 
-    return NextResponse.json({ success: true, listings: result });
+      return NextResponse.json({ success: true, listings: result });
+    } catch (dbErr: any) {
+      console.warn("Database fetch warning (table missing or connection error):", dbErr);
+      // Return empty list safely if table hasn't been pushed yet
+      return NextResponse.json({
+        success: true,
+        listings: [],
+        warning: "Database tables not initialized. Run `npx drizzle-kit push` to create database schema.",
+      });
+    }
   } catch (error: any) {
     console.error("GET listings error:", error);
     return NextResponse.json(
-      { error: "Failed to fetch saved listings." },
+      { error: error?.message || "Failed to fetch saved listings." },
       { status: 500 }
     );
   }
@@ -65,35 +75,46 @@ export async function POST(req: Request) {
       );
     }
 
-    // Ensure user exists in users table before FK constraint
-    const userRow = await db
-      .select()
-      .from(users)
-      .where(eq(users.clerkId, userId))
-      .limit(1);
+    try {
+      // Ensure user exists in users table before inserting listing (foreign key safeguard)
+      const userRow = await db
+        .select()
+        .from(users)
+        .where(eq(users.clerkId, userId))
+        .limit(1);
 
-    if (userRow.length === 0) {
-      await db.insert(users).values({
-        clerkId: userId,
-        email: "user@daraz.com",
+      if (userRow.length === 0) {
+        await db.insert(users).values({
+          clerkId: userId,
+          email: "seller@daraz.com",
+        });
+      }
+
+      const newListing = await db
+        .insert(listings)
+        .values({
+          userId,
+          inputTitles: validation.data.inputTitles,
+          seoTitle: validation.data.seoTitle,
+          shortDescription: validation.data.shortDescription,
+          longDescription: validation.data.longDescription,
+        })
+        .returning();
+
+      return NextResponse.json({
+        success: true,
+        listing: newListing[0],
       });
+    } catch (dbErr: any) {
+      console.error("Database insert error:", dbErr);
+      return NextResponse.json(
+        {
+          error:
+            "Database table error. Make sure your Neon DATABASE_URL is active and you have run 'npx drizzle-kit push' to create tables.",
+        },
+        { status: 500 }
+      );
     }
-
-    const newListing = await db
-      .insert(listings)
-      .values({
-        userId,
-        inputTitles: validation.data.inputTitles,
-        seoTitle: validation.data.seoTitle,
-        shortDescription: validation.data.shortDescription,
-        longDescription: validation.data.longDescription,
-      })
-      .returning();
-
-    return NextResponse.json({
-      success: true,
-      listing: newListing[0],
-    });
   } catch (error: any) {
     console.error("POST listing error:", error);
     return NextResponse.json(

@@ -65,7 +65,7 @@ export default function Footer() {
         <div className="pt-8 border-t border-slate-800 text-xs text-slate-500 flex flex-col sm:flex-row justify-between items-center gap-4">
           <p>© {new Date().getFullYear()} Ummah DarazListings. All rights reserved.</p>
           <p className="text-slate-400">
-            Powered by Claude 3.5 Sonnet & Clerk Auth
+            Powered by Ummah IT Solutions
           </p>
         </div>
       </div>
