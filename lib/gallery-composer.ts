@@ -51,6 +51,7 @@ export interface TextFitOptions {
   fill?: string;
   fontWeight?: string;
   textAnchor?: "start" | "middle" | "end";
+  letterSpacing?: string;
   x?: number;
   y?: number;
 }
@@ -73,6 +74,7 @@ export function fitTextToBox(options: TextFitOptions): {
     fill = "#1E293B",
     fontWeight = "bold",
     textAnchor = "start",
+    letterSpacing,
     x = 0,
     y = 0,
   } = options;
@@ -146,8 +148,9 @@ export function fitTextToBox(options: TextFitOptions): {
     return `<tspan x="${x}" dy="${dy}">${escapeXml(line)}</tspan>`;
   });
 
+  const letterSpacingAttr = letterSpacing ? ` letter-spacing="${letterSpacing}"` : "";
   const svg = `
-    <text x="${x}" y="${y}" font-family="${fontFamily}" font-size="${currentFontSize}" font-weight="${fontWeight}" fill="${fill}" text-anchor="${textAnchor}">
+    <text x="${x}" y="${y}" font-family="${fontFamily}" font-size="${currentFontSize}" font-weight="${fontWeight}" fill="${fill}" text-anchor="${textAnchor}"${letterSpacingAttr}>
       ${tspanSvgParts.join("")}
     </text>
   `;
@@ -159,6 +162,28 @@ export function fitTextToBox(options: TextFitOptions): {
     actualWidth,
     actualHeight,
   };
+}
+
+export function computeBadgeLayout(text: string, maxBadgeW = 520): { badgeW: number; fontSize: number } {
+  const len = text.length;
+  let fontSize = 18;
+  if (len > 24) fontSize = 14;
+  else if (len > 18) fontSize = 15;
+  else if (len > 14) fontSize = 16;
+
+  const charWidth = fontSize * 0.65;
+  const paddingH = 44; // 22px padding on each side
+
+  let calculatedW = Math.ceil(len * charWidth + paddingH);
+  let badgeW = Math.max(160, Math.min(maxBadgeW, calculatedW));
+
+  // Ensure font size scales down if text would exceed pill bounds
+  const maxTextW = badgeW - 32;
+  if (len * (fontSize * 0.65) > maxTextW) {
+    fontSize = Math.max(11, Math.floor(maxTextW / (len * 0.65)));
+  }
+
+  return { badgeW, fontSize };
 }
 
 // =========================================================================
@@ -211,23 +236,23 @@ export async function generateGallerySlides(
 
   let topLeftSvg = "";
   if (renderTopLeftBadge) {
-    const badgeW = Math.max(160, Math.min(380, topLeftBadge.length * 14 + 40));
+    const { badgeW, fontSize } = computeBadgeLayout(topLeftBadge, 480);
     topLeftSvg = `
       <g transform="translate(60, 70)">
         <rect width="${badgeW}" height="54" rx="12" fill="#13a2c1"/>
-        <text x="${badgeW / 2}" y="34" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="18" font-weight="bold" fill="#FFFFFF" text-anchor="middle">${escapeXml(topLeftBadge)}</text>
+        <text x="${badgeW / 2}" y="34" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="${fontSize}" font-weight="bold" fill="#FFFFFF" text-anchor="middle">${escapeXml(topLeftBadge)}</text>
       </g>
     `;
   }
 
   let topRightSvg = "";
   if (renderTopRightBadge) {
-    const badgeW = Math.max(160, Math.min(380, topRightBadge.length * 14 + 40));
+    const { badgeW, fontSize } = computeBadgeLayout(topRightBadge, 520);
     const badgeX = CANVAS_SIZE - 60 - badgeW;
     topRightSvg = `
       <g transform="translate(${badgeX}, 70)">
         <rect width="${badgeW}" height="54" rx="27" fill="#F57224"/>
-        <text x="${badgeW / 2}" y="34" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="18" font-weight="bold" fill="#FFFFFF" text-anchor="middle">${escapeXml(topRightBadge)}</text>
+        <text x="${badgeW / 2}" y="34" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="${fontSize}" font-weight="bold" fill="#FFFFFF" text-anchor="middle">${escapeXml(topRightBadge)}</text>
       </g>
     `;
   }
@@ -252,7 +277,7 @@ export async function generateGallerySlides(
           fontWeight: "bold",
           textAnchor: "middle",
           x: CANVAS_SIZE / 2,
-          y: hasSubtitle ? 1088 : 1110,
+          y: hasSubtitle ? 1086 : 1110,
         })
       : null;
 
@@ -260,16 +285,17 @@ export async function generateGallerySlides(
     if (hasSubtitle) {
       let subY = 1125;
       if (titleFit) {
-        subY = titleFit.lines.length > 1 ? 1152 : 1132;
+        subY = titleFit.lines.length > 1 ? 1154 : 1134;
       }
       const subFit = fitTextToBox({
         text: heroSubtitle,
         maxBoxWidth: CANVAS_SIZE - 80,
         maxLines: 1,
-        baseFontSize: 17,
+        baseFontSize: 16,
         minFontSize: 12,
-        fill: "#FFFFFF",
+        fill: "#E2E8F0",
         fontWeight: "bold",
+        letterSpacing: "2.5",
         textAnchor: "middle",
         x: CANVAS_SIZE / 2,
         y: subY,
