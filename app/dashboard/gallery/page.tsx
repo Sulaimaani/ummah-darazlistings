@@ -1183,12 +1183,12 @@ export default function GalleryPage() {
                         )}
                       </div>
 
-                      <div className="bg-[#13a2c1] text-white p-3 text-center -mx-6 -mb-6">
-                        <p className="font-bold text-sm truncate px-2">
+                      <div className="bg-[#13a2c1] text-white py-3 px-4 text-center -mx-6 -mb-6 min-h-[60px] flex flex-col justify-center items-center">
+                        <p className="font-bold text-sm truncate px-2 leading-tight">
                           {productName || "YOUR PRODUCT TITLE OVERLAY"}
                         </p>
                         {heroSubtitle && (
-                          <p className="text-[10px] text-white font-bold uppercase tracking-wider mt-0.5">
+                          <p className="text-[10px] text-slate-100 font-semibold uppercase tracking-widest mt-1 opacity-90 leading-tight">
                             {heroSubtitle}
                           </p>
                         )}

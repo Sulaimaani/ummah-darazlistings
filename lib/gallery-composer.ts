@@ -265,48 +265,91 @@ export async function generateGallerySlides(
   let footerBannerSvg = "";
   if (productName || heroSubtitle) {
     const hasSubtitle = Boolean(heroSubtitle);
+    const hasTitle = Boolean(productName);
 
-    const titleFit = productName
+    // Measure title layout first to determine font size & line count
+    const initialTitleFit = hasTitle
       ? fitTextToBox({
           text: productName,
           maxBoxWidth: CANVAS_SIZE - 80,
           maxLines: 2,
-          baseFontSize: hasSubtitle ? 30 : 34,
+          baseFontSize: hasSubtitle ? 28 : 34,
           minFontSize: 20,
           fill: "#FFFFFF",
           fontWeight: "bold",
           textAnchor: "middle",
           x: CANVAS_SIZE / 2,
-          y: hasSubtitle ? 1086 : 1110,
+          y: 0,
         })
       : null;
 
-    let subSvg = "";
-    if (hasSubtitle) {
-      let subY = 1125;
-      if (titleFit) {
-        subY = titleFit.lines.length > 1 ? 1154 : 1134;
+    let titleY = 1115;
+    let subY = 1153;
+
+    if (hasTitle && initialTitleFit) {
+      const lineCount = initialTitleFit.lines.length;
+      const titleFs = initialTitleFit.actualFontSize;
+      const lineStep = Math.round(titleFs * 1.3);
+
+      if (hasSubtitle) {
+        // Calculate baselines to center the (Title + Subtitle) block vertically inside y=1050..1200 (height 150)
+        if (lineCount === 1) {
+          // 1-line title + 1-line subtitle: Top padding ~44px, Bottom padding ~44px
+          titleY = 1115;
+          subY = 1153;
+        } else {
+          // 2-line title + 1-line subtitle: Top padding ~27px, Bottom padding ~27px
+          titleY = 1098;
+          subY = titleY + lineStep + 36;
+        }
+      } else {
+        // Title only
+        if (lineCount === 1) {
+          titleY = 1133;
+        } else {
+          titleY = 1115;
+        }
       }
-      const subFit = fitTextToBox({
-        text: heroSubtitle,
-        maxBoxWidth: CANVAS_SIZE - 80,
-        maxLines: 1,
-        baseFontSize: 16,
-        minFontSize: 12,
-        fill: "#E2E8F0",
-        fontWeight: "bold",
-        letterSpacing: "2.5",
-        textAnchor: "middle",
-        x: CANVAS_SIZE / 2,
-        y: subY,
-      });
-      subSvg = subFit.svg;
+    } else if (hasSubtitle) {
+      // Subtitle only
+      subY = 1130;
     }
+
+    const titleFit = hasTitle
+      ? fitTextToBox({
+          text: productName,
+          maxBoxWidth: CANVAS_SIZE - 80,
+          maxLines: 2,
+          baseFontSize: hasSubtitle ? 28 : 34,
+          minFontSize: 20,
+          fill: "#FFFFFF",
+          fontWeight: "bold",
+          textAnchor: "middle",
+          x: CANVAS_SIZE / 2,
+          y: titleY,
+        })
+      : null;
+
+    const subFit = hasSubtitle
+      ? fitTextToBox({
+          text: heroSubtitle,
+          maxBoxWidth: CANVAS_SIZE - 80,
+          maxLines: 1,
+          baseFontSize: 16,
+          minFontSize: 12,
+          fill: "#E2E8F0",
+          fontWeight: "bold",
+          letterSpacing: "2.5",
+          textAnchor: "middle",
+          x: CANVAS_SIZE / 2,
+          y: subY,
+        })
+      : null;
 
     footerBannerSvg = `
       <rect x="0" y="1050" width="${CANVAS_SIZE}" height="150" fill="#13a2c1"/>
       ${titleFit ? titleFit.svg : ""}
-      ${subSvg}
+      ${subFit ? subFit.svg : ""}
     `;
   }
 
