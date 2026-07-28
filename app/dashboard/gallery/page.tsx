@@ -55,6 +55,7 @@ export default function GalleryPage() {
 
   // Slide 1: Hero Attributes
   const [productName, setProductName] = useState("");
+  const [heroSubtitle, setHeroSubtitle] = useState("PREMIUM QUALITY • ORIGINAL PRODUCT");
   const [sizeWeightLabel, setSizeWeightLabel] = useState("");
   const [topLeftBadgeText, setTopLeftBadgeText] = useState("");
   const [topRightBadgeText, setTopRightBadgeText] = useState("");
@@ -329,6 +330,7 @@ export default function GalleryPage() {
       });
 
       formData.append("productName", productName);
+      formData.append("heroSubtitle", heroSubtitle);
       formData.append("sizeWeightLabel", topRightBadgeText || sizeWeightLabel);
       formData.append("topLeftBadgeText", topLeftBadgeText);
       formData.append("topRightBadgeText", topRightBadgeText || sizeWeightLabel);
@@ -569,6 +571,17 @@ export default function GalleryPage() {
                         onFocus={() => activateSection("hero")}
                         onChange={(e) => setProductName(e.target.value)}
                         placeholder="e.g. Wireless Earbuds F9 Edition"
+                        className="input-daraz py-1.5 text-xs"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-semibold text-slate-700 mb-1">Hero Subtitle (Banner)</label>
+                      <input
+                        type="text"
+                        value={heroSubtitle}
+                        onFocus={() => activateSection("hero")}
+                        onChange={(e) => setHeroSubtitle(e.target.value)}
+                        placeholder="e.g. PREMIUM QUALITY • ORIGINAL PRODUCT"
                         className="input-daraz py-1.5 text-xs"
                       />
                     </div>
@@ -1139,7 +1152,7 @@ export default function GalleryPage() {
                     <div className="w-full h-full relative bg-gradient-to-b from-white to-slate-50 p-6 flex flex-col justify-between">
                       <div className="flex items-start justify-between w-full relative z-10">
                         {topLeftBadgeText && logoPosition !== "Top-Left" ? (
-                          <span className="px-3 py-1.5 bg-slate-900 text-white font-bold text-xs rounded-lg shadow-xs">
+                          <span className="px-3 py-1.5 bg-[#13a2c1] text-white font-bold text-xs rounded-lg shadow-xs">
                             {topLeftBadgeText}
                           </span>
                         ) : logoPreview && logoPosition === "Top-Left" ? (
@@ -1170,13 +1183,15 @@ export default function GalleryPage() {
                         )}
                       </div>
 
-                      <div className="bg-slate-900 text-white p-3 text-center -mx-6 -mb-6">
+                      <div className="bg-[#13a2c1] text-white p-3 text-center -mx-6 -mb-6">
                         <p className="font-bold text-sm truncate px-2">
                           {productName || "YOUR PRODUCT TITLE OVERLAY"}
                         </p>
-                        <p className="text-[10px] text-daraz-orange font-bold uppercase tracking-wider mt-0.5">
-                          PREMIUM QUALITY • ORIGINAL PRODUCT
-                        </p>
+                        {heroSubtitle && (
+                          <p className="text-[10px] text-white font-bold uppercase tracking-wider mt-0.5">
+                            {heroSubtitle}
+                          </p>
+                        )}
                       </div>
                     </div>
                   )}
@@ -1213,13 +1228,13 @@ export default function GalleryPage() {
                   {/* SLIDE 3: DIMENSIONS PREVIEW */}
                   {previewSlide === "dimensions" && (
                     <div className="w-full h-full relative bg-white flex flex-col justify-between">
-                      <div className="bg-slate-900 text-white p-3 text-center font-bold text-sm tracking-wide">
+                      <div className="bg-[#13a2c1] text-white p-3 text-center font-bold text-sm tracking-wide">
                         {dimensionsTitle ? dimensionsTitle.toUpperCase() : "PRODUCT DIMENSIONS & SIZE"}
                       </div>
 
                       <div className="flex-1 p-8 relative flex items-center justify-center">
                         {depthText && (
-                          <div className="absolute top-3 right-3 bg-slate-900 text-white text-[10px] font-bold px-2 py-1 rounded border border-daraz-orange">
+                          <div className="absolute top-3 right-3 bg-[#13a2c1] text-white text-[10px] font-bold px-2 py-1 rounded border border-daraz-orange">
                             DEPTH: {depthText}
                           </div>
                         )}
@@ -1291,9 +1306,9 @@ export default function GalleryPage() {
                         )}
                       </div>
                       {(versatilityTitle || versatilitySubheadline || versatilityBullets.some(b => b)) && (
-                        <div className="bg-slate-900 text-white p-3 rounded-xl space-y-1">
+                        <div className="bg-[#13a2c1] text-white p-3 rounded-xl space-y-1">
                           {versatilityTitle && <p className="font-bold text-xs">{versatilityTitle}</p>}
-                          {versatilitySubheadline && <p className="text-[10px] text-slate-300">{versatilitySubheadline}</p>}
+                          {versatilitySubheadline && <p className="text-[10px] text-sky-100">{versatilitySubheadline}</p>}
                           <div className="flex gap-2 pt-1">
                             {versatilityBullets.filter(b => b).map((b, i) => (
                               <span key={i} className="text-[9px] bg-daraz-orange px-1.5 py-0.5 rounded text-white font-semibold">✓ {b}</span>
@@ -1307,7 +1322,7 @@ export default function GalleryPage() {
                   {/* SLIDE 6: BENEFITS PREVIEW */}
                   {previewSlide === "benefits" && (
                     <div className="w-full h-full relative bg-slate-50 flex flex-col justify-between">
-                      <div className="bg-slate-900 text-white p-2.5 text-center font-bold text-xs">
+                      <div className="bg-[#13a2c1] text-white p-2.5 text-center font-bold text-xs">
                         {benefitsTitle.toUpperCase()}
                       </div>
                       <div className="flex-1 p-3 grid grid-cols-2 gap-2">
@@ -1336,7 +1351,7 @@ export default function GalleryPage() {
                         {getSlidePreview("package") ? <img src={getSlidePreview("package")} alt="Product" className="max-h-36 object-contain" /> : <span className="text-xs text-slate-400">Photo</span>}
                       </div>
                       {packageContents.some(p => p.trim()) && (
-                        <div className="bg-slate-900 text-white p-3 rounded-t-xl space-y-1">
+                        <div className="bg-[#13a2c1] text-white p-3 rounded-t-xl space-y-1">
                           <p className="text-[10px] font-bold text-daraz-orange">{packageListTitle}</p>
                           {packageContents.filter(p => p.trim()).map((item, i) => (
                             <p key={i} className="text-[9px] truncate">• {item}</p>
@@ -1349,7 +1364,7 @@ export default function GalleryPage() {
                   {/* SLIDE 8: SELLER PROTECTION PREVIEW */}
                   {previewSlide === "trust" && (
                     <div className="w-full h-full relative bg-slate-50 flex flex-col justify-between">
-                      <div className="bg-slate-900 text-white p-3 text-center font-bold text-xs truncate">
+                      <div className="bg-[#13a2c1] text-white p-3 text-center font-bold text-xs truncate">
                         {closingTitle || productName || "YOUR PRODUCT TITLE OVERLAY"}
                       </div>
                       <div className="flex-1 flex items-center justify-center p-4">
@@ -1367,7 +1382,7 @@ export default function GalleryPage() {
                           <span className="text-[9px] font-bold text-slate-800">Quality Tested</span>
                         </div>
                         <div className="text-center p-1 bg-slate-50 rounded border border-slate-100">
-                          <span className="text-slate-800 font-bold text-xs block">⚡</span>
+                          <span className="text-[#13a2c1] font-bold text-xs block">⚡</span>
                           <span className="text-[9px] font-bold text-slate-800">Fast Shipping</span>
                         </div>
                         <div className="text-center p-1 bg-slate-50 rounded border border-slate-100">

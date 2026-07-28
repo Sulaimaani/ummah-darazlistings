@@ -13,6 +13,7 @@ const config: Config = {
           orange: "#F57224",
           "orange-hover": "#D95E14",
           "orange-light": "#FFF5F0",
+          teal: "#13a2c1",
           navy: "#1E293B",
           dark: "#0F172A",
           gray: "#64748B",

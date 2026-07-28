@@ -57,6 +57,7 @@ export async function POST(req: Request) {
     }
 
     const productName = (formData.get("productName") as string) || "";
+    const heroSubtitle = formData.has("heroSubtitle") ? (formData.get("heroSubtitle") as string) : undefined;
     const sizeWeightLabel = (formData.get("sizeWeightLabel") as string) || "";
     const topLeftBadgeText = (formData.get("topLeftBadgeText") as string) || "";
     const topRightBadgeText = (formData.get("topRightBadgeText") as string) || sizeWeightLabel;
@@ -179,6 +180,7 @@ export async function POST(req: Request) {
     // Generate 8 composited gallery slides using sharp engine
     const slides = await generateGallerySlides(sourceBuffers, {
       productName,
+      heroSubtitle,
       sizeWeightLabel,
       topLeftBadgeText,
       topRightBadgeText,

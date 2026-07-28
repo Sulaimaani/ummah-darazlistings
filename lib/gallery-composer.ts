@@ -30,6 +30,7 @@ export interface GalleryInputAttributes {
   closingSubtitle?: string;
   closingBadges?: { title: string; subtitle: string }[];
   featureCallouts?: string[]; // 0 to 5 bullet callouts
+  heroSubtitle?: string;
   logoBuffer?: Buffer;
   logoPosition?: "Top-Left" | "Top-Right" | "Bottom-Left" | "Bottom-Right" | "None";
   /** Per-slide image buffer overrides. Keys: hero, callouts, dimensions, versatility, benefits, package, trust */
@@ -213,7 +214,7 @@ export async function generateGallerySlides(
     const badgeW = Math.max(160, Math.min(380, topLeftBadge.length * 14 + 40));
     topLeftSvg = `
       <g transform="translate(60, 70)">
-        <rect width="${badgeW}" height="54" rx="12" fill="#1E293B"/>
+        <rect width="${badgeW}" height="54" rx="12" fill="#13a2c1"/>
         <text x="${badgeW / 2}" y="34" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="18" font-weight="bold" fill="#FFFFFF" text-anchor="middle">${escapeXml(topLeftBadge)}</text>
       </g>
     `;
@@ -231,22 +232,55 @@ export async function generateGallerySlides(
     `;
   }
 
+  const heroSubtitle =
+    attrs.heroSubtitle !== undefined
+      ? attrs.heroSubtitle.trim()
+      : "PREMIUM QUALITY • ORIGINAL PRODUCT";
+
   let footerBannerSvg = "";
-  if (productName) {
-    const titleFit = fitTextToBox({
-      text: productName,
-      maxBoxWidth: CANVAS_SIZE - 80,
-      maxLines: 2,
-      baseFontSize: 34,
-      minFontSize: 22,
-      fill: "#FFFFFF",
-      textAnchor: "middle",
-      x: CANVAS_SIZE / 2,
-      y: 1110,
-    });
+  if (productName || heroSubtitle) {
+    const hasSubtitle = Boolean(heroSubtitle);
+
+    const titleFit = productName
+      ? fitTextToBox({
+          text: productName,
+          maxBoxWidth: CANVAS_SIZE - 80,
+          maxLines: 2,
+          baseFontSize: hasSubtitle ? 30 : 34,
+          minFontSize: 20,
+          fill: "#FFFFFF",
+          fontWeight: "bold",
+          textAnchor: "middle",
+          x: CANVAS_SIZE / 2,
+          y: hasSubtitle ? 1088 : 1110,
+        })
+      : null;
+
+    let subSvg = "";
+    if (hasSubtitle) {
+      let subY = 1125;
+      if (titleFit) {
+        subY = titleFit.lines.length > 1 ? 1152 : 1132;
+      }
+      const subFit = fitTextToBox({
+        text: heroSubtitle,
+        maxBoxWidth: CANVAS_SIZE - 80,
+        maxLines: 1,
+        baseFontSize: 17,
+        minFontSize: 12,
+        fill: "#FFFFFF",
+        fontWeight: "bold",
+        textAnchor: "middle",
+        x: CANVAS_SIZE / 2,
+        y: subY,
+      });
+      subSvg = subFit.svg;
+    }
+
     footerBannerSvg = `
-      <rect x="0" y="1050" width="${CANVAS_SIZE}" height="150" fill="#1E293B"/>
-      ${titleFit.svg}
+      <rect x="0" y="1050" width="${CANVAS_SIZE}" height="150" fill="#13a2c1"/>
+      ${titleFit ? titleFit.svg : ""}
+      ${subSvg}
     `;
   }
 
@@ -492,7 +526,7 @@ export async function generateGallerySlides(
     const badgeW = Math.max(160, depthVal.length * 14 + 60);
     depthSvg = `
       <g transform="translate(${1060 - badgeW}, 150)">
-        <rect width="${badgeW}" height="50" rx="10" fill="#1E293B" stroke="#F57224" stroke-width="2"/>
+        <rect width="${badgeW}" height="50" rx="10" fill="#13a2c1" stroke="#F57224" stroke-width="2"/>
         <text x="${badgeW / 2}" y="32" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="18" font-weight="bold" fill="#FFFFFF" text-anchor="middle">DEPTH: ${escapeXml(depthVal)}</text>
       </g>
     `;
@@ -512,7 +546,7 @@ export async function generateGallerySlides(
       y: 62,
     });
     dimHeaderSvg = `
-      <rect x="0" y="0" width="${CANVAS_SIZE}" height="100" fill="#1E293B"/>
+      <rect x="0" y="0" width="${CANVAS_SIZE}" height="100" fill="#13a2c1"/>
       ${titleFit.svg}
     `;
   }
@@ -693,7 +727,7 @@ export async function generateGallerySlides(
           maxLines: 2,
           baseFontSize: 20,
           minFontSize: 14,
-          fill: "#CBD5E1",
+          fill: "#E0F2FE",
           x: 60,
           y: titleFit ? 890 + titleFit.actualHeight + 25 : 890,
         })
@@ -714,7 +748,7 @@ export async function generateGallerySlides(
     });
 
     bannerContentSvg = `
-      <rect x="0" y="810" width="${CANVAS_SIZE}" height="390" fill="#1E293B"/>
+      <rect x="0" y="810" width="${CANVAS_SIZE}" height="390" fill="#13a2c1"/>
       ${titleFit ? titleFit.svg : ""}
       ${subFit ? subFit.svg : ""}
       ${bulletSvgParts.join("\n")}
@@ -823,7 +857,7 @@ export async function generateGallerySlides(
       y: 56,
     });
     benefitHeaderSvg = `
-      <rect x="0" y="0" width="${CANVAS_SIZE}" height="90" fill="#1E293B"/>
+      <rect x="0" y="0" width="${CANVAS_SIZE}" height="90" fill="#13a2c1"/>
       ${titleFit.svg}
     `;
   }
@@ -901,7 +935,7 @@ export async function generateGallerySlides(
       : "";
 
     pkgBannerSvg = `
-      <rect x="60" y="790" width="1080" height="360" rx="20" fill="#1E293B"/>
+      <rect x="60" y="790" width="1080" height="360" rx="20" fill="#13a2c1"/>
       ${listTitleHeaderSvg}
       ${itemSvgParts.join("\n")}
     `;
@@ -952,7 +986,7 @@ export async function generateGallerySlides(
       y: 70,
     });
     closingTitleSvg = `
-      <rect x="0" y="0" width="${CANVAS_SIZE}" height="120" fill="#1E293B"/>
+      <rect x="0" y="0" width="${CANVAS_SIZE}" height="120" fill="#13a2c1"/>
       ${closingTitleFit.svg}
     `;
   }
@@ -971,7 +1005,7 @@ export async function generateGallerySlides(
 
         <!-- Badge 2 -->
         <rect x="370" y="0" width="340" height="180" rx="16" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="2"/>
-        <circle cx="540" cy="55" r="30" fill="#1E293B"/>
+        <circle cx="540" cy="55" r="30" fill="#13a2c1"/>
         <text x="540" y="65" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="28" fill="#FFFFFF" text-anchor="middle">⚡</text>
         <text x="540" y="125" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="19" font-weight="bold" fill="#1E293B" text-anchor="middle">${escapeXml(closingBadges[1]?.title || "")}</text>
         <text x="540" y="150" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13" fill="#64748B" text-anchor="middle">${escapeXml(closingBadges[1]?.subtitle || "")}</text>
